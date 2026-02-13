@@ -1,6 +1,6 @@
 # [The Film Journal]
 
-A simple web-application which gives the user the ability to give raitings to films og series. 
+A simple web-application which gives the user the ability to give raitings to films and series. 
 These raitings are tracked to give the user a recap of which parts they enjoyed and which they didn't. 
 These statistics can also be shared with other users.
 
