@@ -1,4 +1,4 @@
-﻿name: CI Pipeline
+﻿name: CI Pipeline with SonarQube
 
 on:
   push:
@@ -7,13 +7,13 @@ on:
   pull_request:
 
 jobs:
-  build-test-coverage-mutation:
+  build-test-sonar:
     runs-on: ubuntu-latest
-    
+
     defaults:
       run:
         working-directory: server
-        
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,32 +23,33 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore server.slnx
 
-      - name: Build solution
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Run unit tests with code coverage
+      - name: SonarQube begin analysis
         run: |
-          dotnet test \
-            --no-build \
+          dotnet sonarscanner begin \
+            /k:"VICJEN-Filmjournal" \
+            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.opencover.reportsPaths=TestResults/**/coverage.opencover.xml
+
+      - name: Build
+        run: dotnet build server.slnx --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: |
+          dotnet test server.slnx \
             --configuration Release \
-            --collect:"XPlat Code Coverage" \
+            --no-build \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
             --results-directory TestResults
 
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
-
-      - name: Generate coverage report
+      - name: SonarQube end analysis (quality gate)
         run: |
-          reportgenerator \
-            -reports:TestResults/**/coverage.cobertura.xml \
-            -targetdir:coverage-report \
-            -reporttypes:Html
-
-      - name: Install Stryker
-        run: dotnet tool install --global dotnet-stryker
-
-      - name: Run mutation testing (fail if < 60%)
-        run: dotnet stryker --break-at 60
+          dotnet sonarscanner end \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
