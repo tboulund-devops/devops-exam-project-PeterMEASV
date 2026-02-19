@@ -36,6 +36,7 @@ jobs:
             /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.cs.opencover.reportsPaths=TestResults/**/coverage.opencover.xml
+            /d:sonar.qualitygate.wait=true
 
       - name: Build
         run: dotnet build server.slnx --configuration Release --no-restore
