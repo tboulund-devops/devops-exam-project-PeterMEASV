@@ -10,4 +10,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+    <ItemGroup>
+        <PackageReference Include="Mqtt.Controllers" Version="0.1.0" />
+        <PackageReference Include="NSwag.AspNetCore" Version="14.6.3" />
+        <PackageReference Include="NSwag.CodeGeneration.TypeScript" Version="14.6.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Services\Classes\" />
+      <Folder Include="Services\Interfaces\" />
+    </ItemGroup>
+
 </Project>
