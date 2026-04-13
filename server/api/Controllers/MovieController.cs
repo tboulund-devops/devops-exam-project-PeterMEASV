@@ -16,7 +16,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
     {
         try
         {
-            return Ok(movieService.GetAllMovies());
+            return Ok(await movieService.GetAllMovies());
         }
         catch (Exception)
         {
@@ -30,7 +30,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
     {
         try
         {
-            return Ok(movieService.GetMoviesByUser(userId));
+            return Ok(await movieService.GetMoviesByUser(userId));
         }
         catch (Exception)
         {

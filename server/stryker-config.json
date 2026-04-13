@@ -6,7 +6,8 @@
     ],
     "project": "api/api.csproj",
     "mutate": [
-      "Services/**"
+      "Services/**",
+      "Controllers/**"
     ],
     "mutation-level": "Standard",
     "reporters": [
