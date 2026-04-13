@@ -1,7 +1,9 @@
 using api;
+using api.Security;
 using api.Services.Classes;
 using api.Services.Interfaces;
 using efscaffold;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace api;
@@ -36,5 +38,9 @@ public class Program
         services.AddControllers();
         services.AddOpenApiDocument();
         services.AddScoped<IMovieService, MovieService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITokenService, JwtService>();
     }
 }
