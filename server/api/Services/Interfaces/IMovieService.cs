@@ -10,6 +10,6 @@ public interface IMovieService
     Task RemoveMovieFromUser(string userId, string movieId);
     Task AddMovieToUser(string userId, string movieId);
     Task<Movie> EditMovie(Movie movie);
-    Task<Movie> CreateMovie(CreateMovieDto movieDTO, string userID);
+    Task<Movie> CreateMovie(CreateMovieDto movieDto, string userId);
 
 }

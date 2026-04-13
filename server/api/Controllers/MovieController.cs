@@ -44,7 +44,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
     {
         try
         {
-            movieService.RemoveMovieFromUser(userId, movieId);
+            await movieService.RemoveMovieFromUser(userId, movieId);
             return Ok();
         }
         catch (Exception)
@@ -59,7 +59,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
     {
         try
         {
-            movieService.AddMovieToUser(userId, movieId);
+            await movieService.AddMovieToUser(userId, movieId);
             return Ok();
         }
         catch (Exception)

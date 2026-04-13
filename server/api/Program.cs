@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace api;
 public class Program
 {
-    public static void Main()
+    public static async Task Main()
     {
         var builder = WebApplication.CreateBuilder();
 
@@ -19,9 +19,9 @@ public class Program
         app.MapControllers();
         app.UseOpenApi();
         app.UseSwaggerUi();
-        app.GenerateApiClientsFromOpenApi("/../../client/src/generated-ts-client.ts");
+        await app.GenerateApiClientsFromOpenApi("/../../client/src/generated-ts-client.ts");
 
-        app.Run();
+        await app.RunAsync();
     }
 
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)

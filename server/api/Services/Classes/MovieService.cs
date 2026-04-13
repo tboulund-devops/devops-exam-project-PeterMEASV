@@ -7,7 +7,7 @@ namespace api.Services.Classes;
 
 public class MovieService(MyDbContext context) : IMovieService
 {
-    const string _errorMessage = "User not found";
+    const string ErrorMessage = "User not found";
     public Task<List<Movie>> GetAllMovies()
     {
         return context.Movies.ToListAsync();
@@ -15,10 +15,10 @@ public class MovieService(MyDbContext context) : IMovieService
 
     public async Task<List<Movie>> GetMoviesByUser(string userId)
     {
-        User user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
-            throw new KeyNotFoundException(_errorMessage);
+            throw new KeyNotFoundException(ErrorMessage);
         }
         
         var userMovies = await context.UsersMovies.Where(um => um.UserId == userId).Select(um => um.MovieId).ToListAsync();
@@ -28,15 +28,15 @@ public class MovieService(MyDbContext context) : IMovieService
 
     public async Task RemoveMovieFromUser(string userId, string movieId)
     {
-        User user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
-            throw new KeyNotFoundException(_errorMessage);
+            throw new KeyNotFoundException(ErrorMessage);
         }
         
         
         
-            UsersMovie? userMovie = await context.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        UsersMovie? userMovie = await context.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
 
         if (userMovie != null)
         {
@@ -51,13 +51,13 @@ public class MovieService(MyDbContext context) : IMovieService
 
     public async Task AddMovieToUser(string userId, string movieId)
     {
-        User user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
-            throw new KeyNotFoundException(_errorMessage);
+            throw new KeyNotFoundException(ErrorMessage);
         }
         
-        Movie movie = await context.Movies.FirstOrDefaultAsync(m => m.Id == movieId);
+        Movie? movie = await context.Movies.FirstOrDefaultAsync(m => m.Id == movieId);
         if (movie == null)
         {
             throw new KeyNotFoundException("Movie not found");
@@ -97,22 +97,22 @@ public class MovieService(MyDbContext context) : IMovieService
         return Task.FromResult(existingMovie);
     }
 
-    public async Task<Movie> CreateMovie(CreateMovieDto movieDTO, string userID)
+    public async Task<Movie> CreateMovie(CreateMovieDto movieDto, string userId)
     {
         
-        User user = await context.Users.FirstOrDefaultAsync(u => u.Id == userID);
+        User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
-            throw new KeyNotFoundException(_errorMessage);
+            throw new KeyNotFoundException(ErrorMessage);
         }
 
         Movie movie = new Movie()
         {
             Id = Guid.NewGuid().ToString(),
-            Description = movieDTO.Description,
-            Title = movieDTO.Title,
-            Year = movieDTO.Year,
-            Starring = movieDTO.Starring,
+            Description = movieDto.Description,
+            Title = movieDto.Title,
+            Year = movieDto.Year,
+            Starring = movieDto.Starring,
         };
         context.Movies.Add(movie);
         await context.SaveChangesAsync();
