@@ -17,6 +17,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - name: Move to Server folder
+        run: cd server
       - name: Restore dependencies
         run: dotnet restore api/api.csproj
       - name: Build
