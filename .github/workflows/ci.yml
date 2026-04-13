@@ -1,56 +1,46 @@
-﻿name: CI Pipeline with SonarQube
+﻿name: Code Coverage & Mutation Testing
 
 on:
   push:
     branches:
       - "**"
   pull_request:
+    branches:
+      - "**"
 
-jobs:
-  build-test-sonar:
+jobs: 
+  build:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: server
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
-
-      - name: Install SonarScanner
-        run: dotnet tool install --global dotnet-sonarscanner
-
+          dotnet-version: 10.0.x
       - name: Restore dependencies
-        run: dotnet restore server.slnx
-
-      - name: SonarQube begin analysis
-        run: |
-          dotnet sonarscanner begin \
-            /k:"VICJEN-Filmjournal" \
-            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.cs.opencover.reportsPaths=TestResults/**/coverage.opencover.xml
-            /d:sonar.qualitygate.wait=true
-
+        run: dotnet restore
       - name: Build
-        run: dotnet build server.slnx --configuration Release --no-restore
-
-      - name: Test with coverage
-        run: |
-          dotnet test server.slnx \
-            --configuration Release \
-            --no-build \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=opencover \
-            --results-directory TestResults
-
-      - name: SonarQube end analysis (quality gate)
-        run: |
-          dotnet sonarscanner end \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet build 
+        
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+        
+      - name: Run tests with code coverage
+        run: dotnet test --collect:"XPlat Code Coverage" --result-directory TestResults
+        
+      - name: Generate report
+        run: reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Html
+        
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage-report/
+          retention-days: 30
+          
+      - name: Install Stryker
+        run: dotnet tool install -g dotnet-stryker
+        
+      - name: Run Stryker
+        run: dotnet stryker --break-at 80

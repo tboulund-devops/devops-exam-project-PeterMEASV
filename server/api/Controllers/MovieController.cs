@@ -1,9 +1,97 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using api.Models;
+using api.Services.Interfaces;
+using efscaffold;
+using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
 [ApiController]
-public class MovieController : ControllerBase
+public class MovieController(IMovieService movieService) : ControllerBase
 {
+
+    [HttpGet]
+    [Route(nameof(GetAllMovies))]
+    public async Task<ActionResult<List<Movie>>> GetAllMovies()
+    {
+        try
+        {
+            return Ok(movieService.GetAllMovies());
+        }
+        catch (Exception e)
+        {
+            return BadRequest("Could not fetch all movies");
+        }
+    }
+
+    [HttpGet]
+    [Route(nameof(GetMoviesByUser))]
+    public async Task<ActionResult<List<Movie>>> GetMoviesByUser([FromBody] string userId)
+    {
+        try
+        {
+            return Ok(movieService.GetMoviesByUser(userId));
+        }
+        catch (Exception e)
+        {
+            return BadRequest("Could not fetch movies by user");
+        }
+    }
+
+    [HttpPost]
+    [Route(nameof(RemoveMovieFromUser))]
+    public async Task<ActionResult<List<Movie>>> RemoveMovieFromUser(string userId, string movieId)
+    {
+        try
+        {
+            movieService.RemoveMovieFromUser(userId, movieId);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest("Could not remove movie from user");
+        }
+    }
     
+    [HttpPost]
+    [Route(nameof(AddMovieToUser))]
+    public async Task<ActionResult<Movie>> AddMovieToUser([FromBody] string userId, string movieId)
+    {
+        try
+        {
+            movieService.AddMovieToUser(userId, movieId);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest("Could not add movie to user");
+        }
+    }
+    
+    [HttpPatch]
+    [Route(nameof(EditMovie))]
+    public async Task<ActionResult<Movie>> EditMovie([FromBody] Movie movie)
+    {
+        try
+        {
+            return Ok(await movieService.EditMovie(movie));
+        }
+        catch (Exception e)
+        {
+            return BadRequest("Could not edit movie");
+        }
+    }
+
+    [HttpPost]
+    [Route(nameof(CreateMovie))]
+    public async Task<ActionResult<Movie>> CreateMovie([FromBody] CreateMovieDTO movie, string userID)
+    {
+        try
+        {
+            return Ok(await movieService.CreateMovie(movie, userID));
+        }
+        catch (Exception e)
+        {
+            return BadRequest("Could not create movie");
+        }
+    }
 }

@@ -1,0 +1,61 @@
+﻿name: CI Pipeline with SonarQube
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  build-test-sonar:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Restore dependencies
+        run: dotnet restore server.slnx
+
+      - name: SonarQube begin analysis
+        run: |
+          dotnet sonarscanner begin \
+            /k:"VICJEN-Filmjournal" \
+            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.opencover.reportsPaths=TestResults/**/coverage.opencover.xml
+            /d:sonar.qualitygate.wait=true
+
+      - name: Build
+        run: dotnet build server.slnx --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: |
+          dotnet test server.slnx \
+            --configuration Release \
+            --no-build \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            --results-directory TestResults
+
+      - name: SonarQube end analysis (quality gate)
+        run: |
+          dotnet sonarscanner end \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+
+
+ dotnet tool install -g dotnet-reportgenerator-globaltool
+ dotnet test --collect:"XPlat Code Coverage" --result-directory TestResults
+ reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Html

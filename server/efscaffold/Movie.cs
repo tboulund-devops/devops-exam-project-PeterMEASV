@@ -13,7 +13,5 @@ public partial class Movie
 
     public string? Description { get; set; }
 
-    public int? Personalrating { get; set; }
-
     public string? Starring { get; set; }
 }
