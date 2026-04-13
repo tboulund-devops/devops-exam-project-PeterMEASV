@@ -1,18 +1,22 @@
 ﻿using efscaffold;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
+using api.Services.Classes;
+using api.Services.Interfaces;
 
 namespace Tests;
 public class Startup
 {
-    public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    public static void ConfigureServices(IServiceCollection services)
     {
-        Program.ConfigureServices(services, configuration);
-        services.RemoveAll(typeof(MyDbContext));
-
+        // Add CORS and controllers (without calling Program.ConfigureServices)
+        services.AddCors();
+        services.AddControllers();
+        services.AddScoped<IMovieService, MovieService>();
+        
+        // Setup test database with Testcontainers
         services.AddScoped<MyDbContext>(factory =>
         {
             var postgreSqlContainer = new PostgreSqlBuilder().Build();

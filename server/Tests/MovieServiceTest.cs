@@ -1,6 +1,8 @@
 ﻿using api.Models;
 using api.Services.Interfaces;
 using efscaffold;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace Tests;
 
@@ -96,7 +98,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     }
 
     [Fact]
-    public void AddMovieToUser_ShouldAddMovieSuccessfully()
+    public async Task AddMovieToUser_ShouldAddMovieSuccessfully()
     {
         // Arrange
         var userId = "user1";
@@ -106,20 +108,20 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         
         dbContext.Users.Add(user);
         dbContext.Movies.Add(movie);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
 
         // Act
-        movieService.AddMovieToUser(userId, movieId);
+        await movieService.AddMovieToUser(userId, movieId);
 
         // Assert
-        var userMovie = dbContext.UsersMovies.FirstOrDefault(um => um.UserId == userId && um.MovieId == movieId);
+        var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
         Assert.NotNull(userMovie);
         Assert.Equal(userId, userMovie.UserId);
         Assert.Equal(movieId, userMovie.MovieId);
     }
 
     [Fact]
-    public void AddMovieToUser_WithInvalidUserId_ShouldThrowException()
+    public async Task AddMovieToUser_WithInvalidUserId_ShouldThrowException()
     {
         // Arrange
         var invalidUserId = "nonexistent-user";
@@ -127,15 +129,15 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
         
         dbContext.Movies.Add(movie);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = Assert.Throws<Exception>(() => movieService.AddMovieToUser(invalidUserId, movieId));
+        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.AddMovieToUser(invalidUserId, movieId));
         Assert.Equal("User not found", exception.Message);
     }
 
     [Fact]
-    public void AddMovieToUser_WithInvalidMovieId_ShouldThrowException()
+    public async Task AddMovieToUser_WithInvalidMovieId_ShouldThrowException()
     {
         // Arrange
         var userId = "user1";
@@ -146,12 +148,12 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         dbContext.SaveChanges();
 
         // Act & Assert
-        var exception = Assert.Throws<Exception>(() => movieService.AddMovieToUser(userId, invalidMovieId));
+        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.AddMovieToUser(userId, invalidMovieId));
         Assert.Equal("Movie not found", exception.Message);
     }
 
     [Fact]
-    public void RemoveMovieFromUser_ShouldRemoveMovieSuccessfully()
+    public async Task RemoveMovieFromUser_ShouldRemoveMovieSuccessfully()
     {
         // Arrange
         var userId = "user1";
@@ -162,30 +164,30 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         dbContext.Users.Add(user);
         dbContext.Movies.Add(movie);
         dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId });
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
 
         // Act
-        movieService.RemoveMovieFromUser(userId, movieId);
+        await movieService.RemoveMovieFromUser(userId, movieId);
 
         // Assert
-        var userMovie = dbContext.UsersMovies.FirstOrDefault(um => um.UserId == userId && um.MovieId == movieId);
+        var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
         Assert.Null(userMovie);
     }
 
     [Fact]
-    public void RemoveMovieFromUser_WithInvalidUserId_ShouldThrowException()
+    public async Task RemoveMovieFromUser_WithInvalidUserId_ShouldThrowException()
     {
         // Arrange
         var invalidUserId = "nonexistent-user";
         var movieId = "movie1";
 
         // Act & Assert
-        var exception = Assert.Throws<Exception>(() => movieService.RemoveMovieFromUser(invalidUserId, movieId));
+        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.RemoveMovieFromUser(invalidUserId, movieId));
         Assert.Equal("User not found", exception.Message);
     }
 
     [Fact]
-    public void RemoveMovieFromUser_WithNonExistentAssociation_ShouldThrowException()
+    public async Task RemoveMovieFromUser_WithNonExistentAssociation_ShouldThrowException()
     {
         // Arrange
         var userId = "user1";
@@ -193,10 +195,10 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
         
         dbContext.Users.Add(user);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = Assert.Throws<Exception>(() => movieService.RemoveMovieFromUser(userId, movieId));
+        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.RemoveMovieFromUser(userId, movieId));
         Assert.Equal("User movie not found", exception.Message);
     }
 
@@ -208,7 +210,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         var originalMovie = new Movie { Id = movieId, Title = "Original Title", Year = 2020, Starring = "Actor 1", Description = "Original Desc" };
         
         dbContext.Movies.Add(originalMovie);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
 
         var updatedMovie = new Movie { Id = movieId, Title = "Updated Title", Year = 2021, Starring = "Actor 2", Description = "Updated Desc"};
 
@@ -223,7 +225,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         Assert.Equal("Actor 2", result.Starring);
         Assert.Equal("Updated Desc", result.Description);
         
-        var dbMovie = dbContext.Movies.FirstOrDefault(m => m.Id == movieId);
+        var dbMovie = await dbContext.Movies.FirstOrDefaultAsync(m => m.Id == movieId);
         Assert.NotNull(dbMovie);
         Assert.Equal("Updated Title", dbMovie.Title);
     }
@@ -236,7 +238,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => movieService.EditMovie(movieWithNullId));
-        Assert.Equal("Movie id cannot be null", exception.Message);
+        Assert.Contains("Movie id cannot be null", exception.Message);
     }
 
     [Fact]

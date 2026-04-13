@@ -25,7 +25,7 @@ public class MovieService(MyDbContext context) : IMovieService
         return movies;
     }
 
-    public async void RemoveMovieFromUser(string userId, string movieId)
+    public async Task RemoveMovieFromUser(string userId, string movieId)
     {
         User user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
@@ -33,7 +33,10 @@ public class MovieService(MyDbContext context) : IMovieService
             throw new Exception("User not found");
         }
         
-        UsersMovie? userMovie = await context.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        
+        
+            UsersMovie? userMovie = await context.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+
         if (userMovie != null)
         {
             context.UsersMovies.Remove(userMovie);
@@ -45,7 +48,7 @@ public class MovieService(MyDbContext context) : IMovieService
         }
     }
 
-    public async void AddMovieToUser(string userId, string movieId)
+    public async Task AddMovieToUser(string userId, string movieId)
     {
         User user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
@@ -87,9 +90,9 @@ public class MovieService(MyDbContext context) : IMovieService
         existingMovie.Starring = movie.Starring;
         existingMovie.Description = movie.Description;
         
-        context.Update(movie);
+        context.Update(existingMovie);
         context.SaveChanges();
-        return Task.FromResult(movie);
+        return Task.FromResult(existingMovie);
     }
 
     public async Task<Movie> CreateMovie(CreateMovieDTO movieDTO, string userId)
