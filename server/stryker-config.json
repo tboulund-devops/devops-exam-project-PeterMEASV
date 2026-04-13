@@ -1,0 +1,19 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-net/master/src/Stryker.CLI/stryker-schema.json",
+  "stryker-config": {
+    "test-projects": [
+      "Tests/Tests.csproj"
+    ],
+    "project": "api/api.csproj",
+    "mutate": [
+      "Services/**"
+    ],
+    "mutation-level": "Standard",
+    "reporters": [
+      "html"
+    ],
+    "verbosity": "info",
+    "test-runner": "vstest",
+    "coverage-analysis": "off"
+  }
+}

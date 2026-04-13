@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Tests;
 
-public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext, ITestOutputHelper outputHelper)
+public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
 {
     // Helper method to reset database
     private async Task ResetDatabaseAsync()
@@ -46,8 +46,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     {
         // Reset database before test
         await ResetDatabaseAsync();
-
-        // Arrange - empty database
+        
 
         // Act
         var result = await movieService.GetAllMovies();
@@ -214,6 +213,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<Exception>(() => movieService.RemoveMovieFromUser(invalidUserId, movieId));
+        Assert.NotNull(exception);
         Assert.Equal("User not found", exception.Message);
     }
 
