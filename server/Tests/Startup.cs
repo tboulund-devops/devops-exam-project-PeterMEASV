@@ -45,4 +45,14 @@ public class Startup
             return ctx;
         });
     }
+
+    // Helper method to reset database (clear all data)
+    public static async Task ResetDatabaseAsync(MyDbContext dbContext)
+    {
+        // Delete in correct order to respect foreign keys
+        dbContext.UsersMovies.RemoveRange(dbContext.UsersMovies);
+        dbContext.Movies.RemoveRange(dbContext.Movies);
+        dbContext.Users.RemoveRange(dbContext.Users);
+        await dbContext.SaveChangesAsync();
+    }
 }

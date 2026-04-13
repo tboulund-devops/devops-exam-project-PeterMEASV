@@ -8,9 +8,21 @@ namespace Tests;
 
 public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext, ITestOutputHelper outputHelper)
 {
+    // Helper method to reset database
+    private async Task ResetDatabaseAsync()
+    {
+        dbContext.UsersMovies.RemoveRange(dbContext.UsersMovies);
+        dbContext.Movies.RemoveRange(dbContext.Movies);
+        dbContext.Users.RemoveRange(dbContext.Users);
+        await dbContext.SaveChangesAsync();
+    }
+
     [Fact]
     public async Task GetAllMovies_ShouldReturnAllMovies()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
+
         // Arrange
         var movie1 = new Movie { Id = "1", Title = "Test Movie 1", Year = 2020, Starring = "Actor 1", Description = "Desc 1" };
         var movie2 = new Movie { Id = "2", Title = "Test Movie 2", Year = 2021, Starring = "Actor 2", Description = "Desc 2" };
@@ -32,6 +44,9 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task GetAllMovies_WithNoMovies_ShouldReturnEmptyList()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
+
         // Arrange - empty database
 
         // Act
@@ -41,10 +56,12 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
         Assert.NotNull(result);
         Assert.Empty(result);
     }
-
+    
     [Fact]
     public async Task GetMoviesByUser_ShouldReturnMoviesForValidUser()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
@@ -71,6 +88,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task GetMoviesByUser_WithInvalidUserId_ShouldThrowException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var invalidUserId = "nonexistent-user";
 
@@ -82,6 +101,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task GetMoviesByUser_WithNoMovies_ShouldReturnEmptyList()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
@@ -100,6 +121,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task AddMovieToUser_ShouldAddMovieSuccessfully()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var movieId = "movie1";
@@ -123,6 +146,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task AddMovieToUser_WithInvalidUserId_ShouldThrowException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var invalidUserId = "nonexistent-user";
         var movieId = "movie1";
@@ -139,6 +164,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task AddMovieToUser_WithInvalidMovieId_ShouldThrowException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var invalidMovieId = "nonexistent-movie";
@@ -155,6 +182,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task RemoveMovieFromUser_ShouldRemoveMovieSuccessfully()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var movieId = "movie1";
@@ -177,6 +206,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task RemoveMovieFromUser_WithInvalidUserId_ShouldThrowException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var invalidUserId = "nonexistent-user";
         var movieId = "movie1";
@@ -189,6 +220,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task RemoveMovieFromUser_WithNonExistentAssociation_ShouldThrowException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var movieId = "movie1";
@@ -205,6 +238,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task EditMovie_ShouldUpdateMovieSuccessfully()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var movieId = "movie1";
         var originalMovie = new Movie { Id = movieId, Title = "Original Title", Year = 2020, Starring = "Actor 1", Description = "Original Desc" };
@@ -233,6 +268,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task EditMovie_WithNullId_ShouldThrowArgumentNullException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var movieWithNullId = new Movie { Id = null, Title = "Title", Year = 2020, Starring = "Actor", Description = "Desc"};
 
@@ -244,6 +281,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task EditMovie_WithNonExistentMovie_ShouldThrowException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var nonExistentMovie = new Movie { Id = "nonexistent", Title = "Title", Year = 2020, Starring = "Actor", Description = "Desc"};
 
@@ -255,6 +294,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task CreateMovie_ShouldCreateMovieSuccessfully()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
@@ -282,6 +323,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task CreateMovie_WithInvalidUserId_ShouldThrowException()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var invalidUserId = "nonexistent-user";
         var createMovieDTO = new CreateMovieDTO("New Movie", 2023, "A great movie", "Actor 1");
@@ -294,6 +337,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task CreateMovie_WithNullDescription_ShouldCreateMovieSuccessfully()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
@@ -314,6 +359,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task CreateMovie_WithNullStarring_ShouldCreateMovieSuccessfully()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
@@ -334,6 +381,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext,
     [Fact]
     public async Task CreateMovie_ShouldGenerateUniqueIds()
     {
+        // Reset database before test
+        await ResetDatabaseAsync();
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
