@@ -93,7 +93,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var invalidUserId = "nonexistent-user";
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.GetMoviesByUser(invalidUserId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.GetMoviesByUser(invalidUserId));
         Assert.Equal("User not found", exception.Message);
     }
 
@@ -156,7 +156,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.AddMovieToUser(invalidUserId, movieId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.AddMovieToUser(invalidUserId, movieId));
         Assert.Equal("User not found", exception.Message);
     }
 
@@ -174,7 +174,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         dbContext.SaveChanges();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.AddMovieToUser(userId, invalidMovieId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.AddMovieToUser(userId, invalidMovieId));
         Assert.Equal("Movie not found", exception.Message);
     }
 
@@ -212,7 +212,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var movieId = "movie1";
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.RemoveMovieFromUser(invalidUserId, movieId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.RemoveMovieFromUser(invalidUserId, movieId));
         Assert.NotNull(exception);
         Assert.Equal("User not found", exception.Message);
     }
@@ -231,7 +231,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.RemoveMovieFromUser(userId, movieId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.RemoveMovieFromUser(userId, movieId));
         Assert.Equal("User movie not found", exception.Message);
     }
 
@@ -274,7 +274,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var movieWithNullId = new Movie { Id = null, Title = "Title", Year = 2020, Starring = "Actor", Description = "Desc"};
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => movieService.EditMovie(movieWithNullId));
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.EditMovie(movieWithNullId));
         Assert.Contains("Movie id cannot be null", exception.Message);
     }
 
@@ -287,7 +287,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var nonExistentMovie = new Movie { Id = "nonexistent", Title = "Title", Year = 2020, Starring = "Actor", Description = "Desc"};
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.EditMovie(nonExistentMovie));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.EditMovie(nonExistentMovie));
         Assert.Equal("Movie not found", exception.Message);
     }
 
@@ -299,7 +299,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO = new CreateMovieDTO("New Movie", 2023, "A great movie", "Actor 1, Actor 2");
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1, Actor 2");
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
@@ -327,10 +327,10 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await ResetDatabaseAsync();
         // Arrange
         var invalidUserId = "nonexistent-user";
-        var createMovieDTO = new CreateMovieDTO("New Movie", 2023, "A great movie", "Actor 1");
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1");
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<Exception>(() => movieService.CreateMovie(createMovieDTO, invalidUserId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.CreateMovie(createMovieDTO, invalidUserId));
         Assert.Equal("User not found", exception.Message);
     }
 
@@ -342,7 +342,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO = new CreateMovieDTO("Movie Title", 2023, null, "Actor");
+        var createMovieDTO = new CreateMovieDto("Movie Title", 2023, null, "Actor");
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
@@ -364,7 +364,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO = new CreateMovieDTO("Movie Title", 2023, "Description", null);
+        var createMovieDTO = new CreateMovieDto("Movie Title", 2023, "Description", null);
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
@@ -386,8 +386,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO1 = new CreateMovieDTO("Movie 1", 2023, "Desc 1", "Actor 1");
-        var createMovieDTO2 = new CreateMovieDTO("Movie 2", 2023, "Desc 2", "Actor 2");
+        var createMovieDTO1 = new CreateMovieDto("Movie 1", 2023, "Desc 1", "Actor 1");
+        var createMovieDTO2 = new CreateMovieDto("Movie 2", 2023, "Desc 2", "Actor 2");
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();

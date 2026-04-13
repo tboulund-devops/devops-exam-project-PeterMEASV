@@ -6,7 +6,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/GetAllMovies": {
+    "/Movie/GetAllMovies": {
       "get": {
         "tags": [
           "Movie"
@@ -29,7 +29,7 @@
         }
       }
     },
-    "/GetMoviesByUser": {
+    "/Movie/GetMoviesByUser": {
       "get": {
         "tags": [
           "Movie"
@@ -64,7 +64,7 @@
         }
       }
     },
-    "/RemoveMovieFromUser": {
+    "/Movie/RemoveMovieFromUser": {
       "post": {
         "tags": [
           "Movie"
@@ -105,7 +105,7 @@
         }
       }
     },
-    "/AddMovieToUser": {
+    "/Movie/AddMovieToUser": {
       "post": {
         "tags": [
           "Movie"
@@ -147,7 +147,7 @@
         }
       }
     },
-    "/EditMovie": {
+    "/Movie/EditMovie": {
       "patch": {
         "tags": [
           "Movie"
@@ -179,7 +179,7 @@
         }
       }
     },
-    "/CreateMovie": {
+    "/Movie/CreateMovie": {
       "post": {
         "tags": [
           "Movie"
@@ -200,7 +200,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateMovieDTO"
+                "$ref": "#/components/schemas/CreateMovieDto"
               }
             }
           },
@@ -248,7 +248,7 @@
           }
         }
       },
-      "CreateMovieDTO": {
+      "CreateMovieDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

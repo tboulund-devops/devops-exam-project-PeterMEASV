@@ -48,7 +48,7 @@ public static class GenerateTypescriptClient
         
            
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation("OpenAPI JSON with documentation saved at: " + openApiPath);
-        logger.LogInformation("TypeScript client generated at: " + outputPath);
+        logger.LogInformation("OpenAPI JSON with documentation saved at: {OpenApiPath}", openApiPath);
+        logger.LogInformation("TypeScript client generated at: {OutputPath}", outputPath);
     }
 }

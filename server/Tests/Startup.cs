@@ -11,7 +11,7 @@ public class Startup
     private static string? _dbPath;
     private static readonly object _lockObject = new();
 
-    public void ConfigureServices(IServiceCollection services)
+    public static void ConfigureServices(IServiceCollection services)
     {
         services.AddCors();
         services.AddControllers();

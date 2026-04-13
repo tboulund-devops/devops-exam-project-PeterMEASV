@@ -4,6 +4,7 @@ using api.Services.Interfaces;
 using efscaffold;
 using Microsoft.EntityFrameworkCore;
 
+namespace api;
 public class Program
 {
     public static void Main()

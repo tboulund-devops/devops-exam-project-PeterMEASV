@@ -18,7 +18,7 @@ export class MovieClient {
     }
 
     getAllMovies(): Promise<Movie[]> {
-        let url_ = this.baseUrl + "/GetAllMovies";
+        let url_ = this.baseUrl + "/Movie/GetAllMovies";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -51,7 +51,7 @@ export class MovieClient {
     }
 
     getMoviesByUser(userId: string): Promise<Movie[]> {
-        let url_ = this.baseUrl + "/GetMoviesByUser";
+        let url_ = this.baseUrl + "/Movie/GetMoviesByUser";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(userId);
@@ -88,7 +88,7 @@ export class MovieClient {
     }
 
     removeMovieFromUser(userId: string | undefined, movieId: string | undefined): Promise<Movie[]> {
-        let url_ = this.baseUrl + "/RemoveMovieFromUser?";
+        let url_ = this.baseUrl + "/Movie/RemoveMovieFromUser?";
         if (userId === null)
             throw new globalThis.Error("The parameter 'userId' cannot be null.");
         else if (userId !== undefined)
@@ -129,7 +129,7 @@ export class MovieClient {
     }
 
     addMovieToUser(movieId: string | undefined, userId: string): Promise<Movie> {
-        let url_ = this.baseUrl + "/AddMovieToUser?";
+        let url_ = this.baseUrl + "/Movie/AddMovieToUser?";
         if (movieId === null)
             throw new globalThis.Error("The parameter 'movieId' cannot be null.");
         else if (movieId !== undefined)
@@ -170,7 +170,7 @@ export class MovieClient {
     }
 
     editMovie(movie: Movie): Promise<Movie> {
-        let url_ = this.baseUrl + "/EditMovie";
+        let url_ = this.baseUrl + "/Movie/EditMovie";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(movie);
@@ -206,8 +206,8 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
-    createMovie(userID: string | undefined, movie: CreateMovieDTO): Promise<Movie> {
-        let url_ = this.baseUrl + "/CreateMovie?";
+    createMovie(userID: string | undefined, movie: CreateMovieDto): Promise<Movie> {
+        let url_ = this.baseUrl + "/Movie/CreateMovie?";
         if (userID === null)
             throw new globalThis.Error("The parameter 'userID' cannot be null.");
         else if (userID !== undefined)
@@ -256,7 +256,7 @@ export interface Movie {
     starring?: string | undefined;
 }
 
-export interface CreateMovieDTO {
+export interface CreateMovieDto {
     title?: string;
     year?: number;
     description?: string | undefined;

@@ -1,3 +1,5 @@
-﻿namespace api.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
-public record CreateMovieDTO(string Title, int Year, string? Description, string? Starring);
+namespace api.Models;
+
+public record CreateMovieDto([Required]string Title, [Required]int Year, string? Description, string? Starring);

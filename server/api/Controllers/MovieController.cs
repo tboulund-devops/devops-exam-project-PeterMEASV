@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace api.Controllers;
 
 [ApiController]
+[Route("[controller]")]
 public class MovieController(IMovieService movieService) : ControllerBase
 {
 
@@ -17,7 +18,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
         {
             return Ok(movieService.GetAllMovies());
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return BadRequest("Could not fetch all movies");
         }
@@ -31,7 +32,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
         {
             return Ok(movieService.GetMoviesByUser(userId));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return BadRequest("Could not fetch movies by user");
         }
@@ -46,7 +47,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
             movieService.RemoveMovieFromUser(userId, movieId);
             return Ok();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return BadRequest("Could not remove movie from user");
         }
@@ -61,7 +62,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
             movieService.AddMovieToUser(userId, movieId);
             return Ok();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return BadRequest("Could not add movie to user");
         }
@@ -75,7 +76,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
         {
             return Ok(await movieService.EditMovie(movie));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return BadRequest("Could not edit movie");
         }
@@ -83,13 +84,13 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpPost]
     [Route(nameof(CreateMovie))]
-    public async Task<ActionResult<Movie>> CreateMovie([FromBody] CreateMovieDTO movie, string userID)
+    public async Task<ActionResult<Movie>> CreateMovie([FromBody] CreateMovieDto movie, string userID)
     {
         try
         {
             return Ok(await movieService.CreateMovie(movie, userID));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return BadRequest("Could not create movie");
         }
