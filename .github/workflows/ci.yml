@@ -8,7 +8,7 @@ on:
     branches:
       - "**"
 
-jobs: 
+jobs:
   build:
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +19,13 @@ jobs:
           dotnet-version: 10.0.x
       - name: Restore dependencies
         run: dotnet restore server/api/api.csproj
-        
+
+      - name: Install Required tools
+        run: |
+          dotnet tool install -g dotnet-sonarscanner
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          dotnet tool install -g dotnet-stryker
+
       - name: SonarQube begin analysis
         run: |
           dotnet sonarscanner begin \
@@ -29,16 +35,13 @@ jobs:
             /d:sonar.coverageReportPaths="coverage-report/SonarQube.xml" \
             /d:sonar.qualitygate.wait=true \
             /d:sonar.qualitygate.timeout=300
-          
+
       - name: Build
-        run: dotnet build server/api/api.csproj      
-      
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
-        
+        run: dotnet build server/api/api.csproj
+
       - name: Run tests with code coverage
         run: dotnet test server/Tests/Tests.csproj --collect:"XPlat Code Coverage" --results-directory server/TestResults
-        
+
       - name: Generate report
         run: reportgenerator -reports:"server/TestResults/**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:SonarQube
       - name: Upload report
@@ -48,15 +51,9 @@ jobs:
           name: coverage-report
           path: coverage-report/
           retention-days: 30
-          
-      - name: Install Stryker
-        run: dotnet tool install -g dotnet-stryker
-        
+
       - name: Run Stryker
         run: cd server && dotnet stryker --break-at 80
-
-      - name: Install SonarScanner
-        run: dotnet tool install --global dotnet-sonarscanner
 
       - name: SonarQube end analysis (quality gate)
         run: |
