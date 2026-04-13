@@ -26,11 +26,12 @@ jobs:
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
         
       - name: Run tests with code coverage
-        run: dotnet test server/Tests/Tests.csproj  --collect:"XPlat Code Coverage" --results-directory TestResults
+        run: dotnet test server/Tests/Tests.csproj --collect:"XPlat Code Coverage" --results-directory TestResults
         
       - name: Generate report
-        run: reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Html
-        
+        run: |
+          cd server
+          reportgenerator -reports:"../TestResults/**/coverage.cobertura.xml" -targetdir:../coverage-report -reporttypes:Html
       - name: Upload report
         uses: actions/upload-artifact@v4
         if: always()
