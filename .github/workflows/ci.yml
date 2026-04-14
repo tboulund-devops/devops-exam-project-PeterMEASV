@@ -99,9 +99,10 @@ jobs:
         
       - name: Create Release
         uses: ncipollo/release-action@v1
-        with: 
+        with:
           tag: ${{ steps.semver-app.outputs.version }}
           generateReleaseNotes: true
+          allowUpdates: true
           body: |
             This release includes the following container image:
             http://ghcr.io/${{ env.REPO_LOWER }}:${{ steps.semver-app.outputs.version }}
