@@ -59,3 +59,60 @@ jobs:
         run: |
           dotnet sonarscanner end \
             /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+          
+      - name: Application Version
+        id: semver-app
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: true
+          
+      
+      - name: Display Version
+        run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
+      
+      
+      - name: Log in to GHCP
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCP_USERNAME }}
+          password: ${{ secrets.GHCP_PASSWORD }}
+          
+          
+      - name: Build and push Docker image
+        run: | 
+          docker build \
+          -t ghcr.io/${{ github.repository }}: staging \
+          -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
+          -f DevOpsWebApplication/Dockerfile \
+          .
+          docker push ghcr.io/${{ github.repository }}: --all-tags
+          
+      - name: Create Release Notes
+        uses: ncipollo/release-action@v1
+        with: 
+          tag: ${{ steps.semver-app.outputs.version }}
+          generateReleaseNotes: true
+          body: |
+            This release includes the following container image:
+            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
+            
+      - name: Deliver Docker Compose file to staging
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ vars.STAGING_SERVER_IP }}
+          username: ${{ vars.STAGING_SERVER_USERNAME }}
+          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+          source: "docker-compose.yaml"
+          target: dowa/
+          
+      - name: Run Docker Compose on staging server
+        uses: appleboy/ssh-action@v1.2.1
+        with: 
+          host: ${{ vars.STAGING_SERVER_IP }}
+          username: ${{ vars.STAGING_SERVER_USERNAME }}
+          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+          script: |
+            cd dowa
+            docker-compose pull
+            docker-compose up -d 
