@@ -82,7 +82,7 @@ jobs:
       - name: Build and push Docker image
         run: | 
           docker build \
-          -t ghcr.io/${{ github.repository }}: staging \
+          -t ghcr.io/${{ github.repository }}:staging \
           -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
           -f server/Dockerfile \
           .
