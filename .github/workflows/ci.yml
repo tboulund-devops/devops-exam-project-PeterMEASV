@@ -71,12 +71,12 @@ jobs:
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
       
       
-      - name: Log in to GHCP
+      - name: Log in to GHCR
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ secrets.GHCP_USERNAME }}
-          password: ${{ secrets.GHCP_PASSWORD }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
           
           
       - name: Build and push Docker image
