@@ -81,21 +81,27 @@ jobs:
           
       - name: Build and push Docker image
         run: | 
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           docker build \
-          -t ghcr.io/${{ github.repository }}:staging \
-          -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
+          -t ghcr.io/${REPO_LOWER}:staging \
+          -t ghcr.io/${REPO_LOWER}:${{ steps.semver-app.outputs.version }} \
           -f server/Dockerfile \
           .
-          docker push ghcr.io/${{ github.repository }} --all-tags
+          docker push ghcr.io/${REPO_LOWER} --all-tags
           
       - name: Create Release Notes
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_LOWER=${REPO_LOWER}" >> $GITHUB_ENV
+        
+      - name: Create Release
         uses: ncipollo/release-action@v1
         with: 
           tag: ${{ steps.semver-app.outputs.version }}
           generateReleaseNotes: true
           body: |
             This release includes the following container image:
-            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
+            http://ghcr.io/${{ env.REPO_LOWER }}:${{ steps.semver-app.outputs.version }}
             
       - name: Deliver Docker Compose file to staging
         uses: appleboy/scp-action@master
