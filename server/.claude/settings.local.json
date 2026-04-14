@@ -5,7 +5,8 @@
       "Bash(dotnet test:*)",
       "Bash(dotnet stryker:*)",
       "Bash(dotnet build:*)",
-      "Bash(dotnet add:*)"
+      "Bash(dotnet add:*)",
+      "Bash(dir \"C:\\\\Users\\\\melon\\\\Documents\\\\prog\\\\4thSem\\\\devops-exam-project-PeterMEASV\\\\.github\\\\workflows\\\\\")"
     ]
   }
 }
