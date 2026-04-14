@@ -88,18 +88,12 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
             background: "rgba(0,0,0,0.6)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 100,
-        }} onClick={onClose} onKeyDown={(e) => {if(e.key === 'Enter') {onClose}}} role="button">
+        }} onClick={onClose}>
             <div style={{
                 background: "#1a1a1a", borderRadius: "10px",
                 padding: "28px", width: "100%", maxWidth: "440px",
                 display: "flex", flexDirection: "column", gap: "14px",
-            }} onClick={(e) => e.stopPropagation()} 
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                         e.stopPropagation();
-                             }
-                        }} 
-                    role="button">
+            }} onClick={(e) => e.stopPropagation()}>
 
                 <h2 style={{ margin: 0 }}>Add movie</h2>
 
@@ -134,8 +128,8 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
                     />
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                        <label style={{ fontSize: "0.85rem", color: "#aaa" }}>Poster (optional)</label>
-                        <input ref={inputRef} type="file" accept="image/*" onChange={handlePhotoChange} />
+                        <label htmlFor="poster-upload" style={{ fontSize: "0.85rem", color: "#aaa" }}>Poster (optional)</label>
+                        <input id="poster-upload" ref={inputRef} type="file" accept="image/*" onChange={handlePhotoChange} />
                         {preview && (
                             <img src={preview} alt="Preview" style={{ maxHeight: 160, objectFit: "contain", borderRadius: "6px" }} />
                         )}
@@ -144,7 +138,7 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
                     {error && <p style={{ color: "red", margin: 0 }}>{error}</p>}
 
                     <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                        <button type="button" onClick={onClose} onKeyDown={(e) => {if(e.key === 'Enter') {onClose}}} role="button" style={secondaryButtonStyle}>Cancel</button>
+                        <button type="button" onClick={onClose} style={secondaryButtonStyle}>Cancel</button>
                         <button type="submit" disabled={submitting} style={primaryButtonStyle}>
                             {submitting ? "Saving..." : "Create"}
                         </button>
@@ -214,7 +208,7 @@ function Dashboard() {
             )}
 
             <button
-                onClick={() => setModalOpen(true)} onKeyDown={(e) => {if(e.key === 'Enter') {setModalOpen(true)}}} role="button"
+                onClick={() => setModalOpen(true)}
                 style={{
                     position: "fixed", bottom: "28px", right: "28px",
                     width: "56px", height: "56px", borderRadius: "50%",
