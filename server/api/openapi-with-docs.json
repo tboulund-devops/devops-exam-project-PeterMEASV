@@ -17,7 +17,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginDTO"
+                "$ref": "#/components/schemas/LoginDto"
               }
             }
           },
@@ -30,7 +30,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LoginResponseDTO"
+                  "$ref": "#/components/schemas/LoginResponseDto"
                 }
               }
             }
@@ -252,8 +252,7 @@
                 "type": "object",
                 "properties": {
                   "Title": {
-                    "type": "string",
-                    "nullable": true
+                    "type": "string"
                   },
                   "Year": {
                     "type": "integer",
@@ -267,7 +266,7 @@
                     "type": "string",
                     "nullable": true
                   },
-                  "photo": {
+                  "Photo": {
                     "type": "string",
                     "format": "binary",
                     "nullable": true
@@ -302,7 +301,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserDTO"
+                "$ref": "#/components/schemas/CreateUserDto"
               }
             }
           },
@@ -326,7 +325,7 @@
   },
   "components": {
     "schemas": {
-      "LoginResponseDTO": {
+      "LoginResponseDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -344,7 +343,7 @@
           }
         }
       },
-      "LoginDTO": {
+      "LoginDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -402,7 +401,7 @@
           }
         }
       },
-      "CreateUserDTO": {
+      "CreateUserDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

@@ -31,10 +31,11 @@ export function LoginPage() {
 
                     <form onSubmit={handleLogin}>
                         <div className="form-control">
-                            <label className="label">
+                            <label htmlFor="email" className="label">
                                 <span className="label-text">Email</span>
                             </label>
                             <input
+                                id="email"
                                 type="email"
                                 placeholder="email@example.com"
                                 className="input input-bordered"
@@ -45,10 +46,11 @@ export function LoginPage() {
                         </div>
 
                         <div className="form-control mt-4">
-                            <label className="label">
+                            <label htmlFor="password" className="label">
                                 <span className="label-text">Password</span>
                             </label>
                             <input
+                                id="password"
                                 type="password"
                                 placeholder="••••••••"
                                 className="input input-bordered"

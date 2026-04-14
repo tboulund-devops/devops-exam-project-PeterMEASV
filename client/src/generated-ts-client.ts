@@ -17,7 +17,7 @@ export class AuthClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    login(loginDto: LoginDTO): Promise<LoginResponseDTO> {
+    login(loginDto: LoginDto): Promise<LoginResponseDto> {
         let url_ = this.baseUrl + "/api/Auth/login";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -37,13 +37,13 @@ export class AuthClient {
         });
     }
 
-    protected processLogin(response: Response): Promise<LoginResponseDTO> {
+    protected processLogin(response: Response): Promise<LoginResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as LoginResponseDTO;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as LoginResponseDto;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -51,7 +51,7 @@ export class AuthClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<LoginResponseDTO>(null as any);
+        return Promise.resolve<LoginResponseDto>(null as any);
     }
 
     getUserInfo(): Promise<User> {
@@ -287,7 +287,7 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
-    createMovie(userID: string | undefined, title: string | null | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
+    createMovie(userID: string | undefined, title: string | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
         let url_ = this.baseUrl + "/Movie/CreateMovie?";
         if (userID === null)
             throw new globalThis.Error("The parameter 'userID' cannot be null.");
@@ -296,7 +296,9 @@ export class MovieClient {
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
-        if (title !== null && title !== undefined)
+        if (title === null || title === undefined)
+            throw new globalThis.Error("The parameter 'title' cannot be null.");
+        else
             content_.append("Title", title.toString());
         if (year === null || year === undefined)
             throw new globalThis.Error("The parameter 'year' cannot be null.");
@@ -307,7 +309,7 @@ export class MovieClient {
         if (starring !== null && starring !== undefined)
             content_.append("Starring", starring.toString());
         if (photo !== null && photo !== undefined)
-            content_.append("photo", photo.data, photo.fileName ? photo.fileName : "photo");
+            content_.append("Photo", photo.data, photo.fileName ? photo.fileName : "Photo");
 
         let options_: RequestInit = {
             body: content_,
@@ -350,7 +352,7 @@ export class UserClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    createUser(userDto: CreateUserDTO): Promise<User> {
+    createUser(userDto: CreateUserDto): Promise<User> {
         let url_ = this.baseUrl + "/api/User/create";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -388,14 +390,14 @@ export class UserClient {
     }
 }
 
-export interface LoginResponseDTO {
+export interface LoginResponseDto {
     id?: string;
     email?: string;
     token?: string;
     message?: string;
 }
 
-export interface LoginDTO {
+export interface LoginDto {
     email?: string;
     password?: string;
 }
@@ -416,7 +418,7 @@ export interface Movie {
     photo?: string | undefined;
 }
 
-export interface CreateUserDTO {
+export interface CreateUserDto {
     email?: string;
     password?: string;
     name?: string | undefined;

@@ -44,7 +44,7 @@ public class AuthServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         
         var mockLogger = new Mock<ILogger<AuthService>>();
         var authService = new AuthService(dbContext, mockLogger.Object, passwordHasher);
-        var loginDto = new LoginDTO(email, password);
+        var loginDto = new LoginDto(email, password);
 
         // Act
         var result = await authService.LoginAsync(loginDto);
@@ -82,7 +82,7 @@ public class AuthServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         
         var mockLogger = new Mock<ILogger<AuthService>>();
         var authService = new AuthService(dbContext, mockLogger.Object, passwordHasher);
-        var loginDto = new LoginDTO("nonexistent@example.com", "password123");
+        var loginDto = new LoginDto("nonexistent@example.com", "password123");
 
         // Act & Assert
         await Assert.ThrowsAsync<System.Security.Authentication.InvalidCredentialException>(
@@ -121,7 +121,7 @@ public class AuthServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         
         var mockLogger = new Mock<ILogger<AuthService>>();
         var authService = new AuthService(dbContext, mockLogger.Object, passwordHasher);
-        var loginDto = new LoginDTO(email, "WrongPassword");
+        var loginDto = new LoginDto(email, "WrongPassword");
 
         // Act & Assert
         await Assert.ThrowsAsync<System.Security.Authentication.InvalidCredentialException>(
@@ -146,7 +146,7 @@ public class AuthServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         
         var mockLogger = new Mock<ILogger<AuthService>>();
         var authService = new AuthService(dbContext, mockLogger.Object, passwordHasher);
-        var loginDto = new LoginDTO(null!, "password");
+        var loginDto = new LoginDto(null!, "password");
 
         // Act & Assert
         await Assert.ThrowsAsync<System.Security.Authentication.InvalidCredentialException>(
@@ -161,7 +161,7 @@ public class AuthServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         
         var mockLogger = new Mock<ILogger<AuthService>>();
         var authService = new AuthService(dbContext, mockLogger.Object, passwordHasher);
-        var loginDto = new LoginDTO("test@example.com", null!);
+        var loginDto = new LoginDto("test@example.com", null!);
 
         // Act & Assert
         await Assert.ThrowsAsync<System.Security.Authentication.InvalidCredentialException>(

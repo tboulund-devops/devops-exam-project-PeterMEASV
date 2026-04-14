@@ -1,6 +1,7 @@
 ﻿using api.Models;
 using api.Services.Interfaces;
 using efscaffold;
+using efscaffold.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +13,7 @@ public class UserController(IUserService userService, ILogger<UserController> lo
 {
     [HttpPost("create")]
     [AllowAnonymous]
-    public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserDTO userDto)
+    public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserDto userDto)
     {
         try
         {

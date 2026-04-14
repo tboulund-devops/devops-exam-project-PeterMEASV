@@ -18,7 +18,7 @@ public class Startup
         services.AddControllers();
         
         // Register the password hasher
-        services.AddScoped<IPasswordHasher<User>, KonciousArgon2idPasswordHasher>();
+        services.AddScoped<IPasswordHasher<User>, KonciousArgon2IdPasswordHasher>();
         
         // Register the mocked StorageClient
         var mockStorageClient = new Mock<StorageClient>();
@@ -34,7 +34,7 @@ public class Startup
         
         services.AddScoped<IMovieService, MovieService>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IPasswordHasher<User>, KonciousArgon2idPasswordHasher>();
+        services.AddScoped<IPasswordHasher<User>, KonciousArgon2IdPasswordHasher>();
         
         // Use a fresh in-memory database per test scope to avoid conflicts
         services.AddScoped<MyDbContext>(factory =>

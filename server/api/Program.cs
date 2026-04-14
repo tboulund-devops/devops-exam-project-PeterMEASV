@@ -50,7 +50,10 @@ public class Program
                 ? appOptions.GoogleApiKey
                 : Path.Combine(env.ContentRootPath, appOptions.GoogleApiKey);
             var json = File.ReadAllText(keyPath);
-            var client = StorageClient.Create(GoogleCredential.FromJson(json));
+#pragma warning disable CS0618
+            var credential = GoogleCredential.FromJson(json);
+#pragma warning restore CS0618
+            var client = StorageClient.Create(credential);
             return new StorageService(client, appOptions.GoogleBucketName);
         });
         services.AddScoped<IUserService, UserService>();

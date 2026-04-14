@@ -31,7 +31,7 @@ public class AuthControllerTest
     public async Task Login_WithValidCredentials_ShouldReturnOkWithToken()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("user@example.com", "SecurePassword123!");
         var user = new User
         {
             Id = Guid.NewGuid().ToString(),
@@ -49,18 +49,18 @@ public class AuthControllerTest
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<LoginResponseDTO>(okResult.Value);
-        Assert.Equal(user.Id, response.id);
-        Assert.Equal(user.Email, response.email);
-        Assert.Equal(token, response.token);
-        Assert.Equal("Login successful", response.message);
+        var response = Assert.IsType<LoginResponseDto>(okResult.Value);
+        Assert.Equal(user.Id, response.Id);
+        Assert.Equal(user.Email, response.Email);
+        Assert.Equal(token, response.Token);
+        Assert.Equal("Login successful", response.Message);
     }
 
     [Fact]
     public async Task Login_WithValidCredentials_ShouldCallAuthService()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("user@example.com", "SecurePassword123!");
         var user = new User
         {
             Id = Guid.NewGuid().ToString(),
@@ -84,7 +84,7 @@ public class AuthControllerTest
     public async Task Login_WithNullEmail_ShouldReturnBadRequest()
     {
         // Arrange
-        var loginDto = new LoginDTO(null!, "SecurePassword123!");
+        var loginDto = new LoginDto(null!, "SecurePassword123!");
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -92,14 +92,14 @@ public class AuthControllerTest
         // Assert
         var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
         Assert.Equal("Email and password are required", badRequest.Value);
-        _mockAuthService.Verify(s => s.LoginAsync(It.IsAny<LoginDTO>()), Times.Never);
+        _mockAuthService.Verify(s => s.LoginAsync(It.IsAny<LoginDto>()), Times.Never);
     }
 
     [Fact]
     public async Task Login_WithEmptyEmail_ShouldReturnBadRequest()
     {
         // Arrange
-        var loginDto = new LoginDTO("", "SecurePassword123!");
+        var loginDto = new LoginDto("", "SecurePassword123!");
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -113,7 +113,7 @@ public class AuthControllerTest
     public async Task Login_WithWhitespaceEmail_ShouldReturnBadRequest()
     {
         // Arrange
-        var loginDto = new LoginDTO("   ", "SecurePassword123!");
+        var loginDto = new LoginDto("   ", "SecurePassword123!");
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -127,7 +127,7 @@ public class AuthControllerTest
     public async Task Login_WithNullPassword_ShouldReturnBadRequest()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", null!);
+        var loginDto = new LoginDto("user@example.com", null!);
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -141,7 +141,7 @@ public class AuthControllerTest
     public async Task Login_WithEmptyPassword_ShouldReturnBadRequest()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "");
+        var loginDto = new LoginDto("user@example.com", "");
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -155,7 +155,7 @@ public class AuthControllerTest
     public async Task Login_WithWhitespacePassword_ShouldReturnBadRequest()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "   ");
+        var loginDto = new LoginDto("user@example.com", "   ");
 
         // Act
         var result = await _controller.Login(loginDto);
@@ -169,7 +169,7 @@ public class AuthControllerTest
     public async Task Login_WithInvalidCredentials_ShouldReturnUnauthorized()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "WrongPassword");
+        var loginDto = new LoginDto("user@example.com", "WrongPassword");
         _mockAuthService.Setup(s => s.LoginAsync(loginDto))
             .ThrowsAsync(new InvalidCredentialException("Invalid email or password"));
 
@@ -185,7 +185,7 @@ public class AuthControllerTest
     public async Task Login_WithNonexistentUser_ShouldReturnUnauthorized()
     {
         // Arrange
-        var loginDto = new LoginDTO("nonexistent@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("nonexistent@example.com", "SecurePassword123!");
         _mockAuthService.Setup(s => s.LoginAsync(loginDto))
             .ThrowsAsync(new InvalidCredentialException("Invalid email or password"));
 
@@ -201,7 +201,7 @@ public class AuthControllerTest
     public async Task Login_WhenUnexpectedExceptionThrown_ShouldReturnInternalServerError()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("user@example.com", "SecurePassword123!");
         _mockAuthService.Setup(s => s.LoginAsync(loginDto))
             .ThrowsAsync(new Exception("Unexpected error"));
 
@@ -218,7 +218,7 @@ public class AuthControllerTest
     public async Task Login_WhenUnexpectedExceptionThrown_ShouldLogError()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("user@example.com", "SecurePassword123!");
         var exception = new Exception("Unexpected error");
         _mockAuthService.Setup(s => s.LoginAsync(loginDto))
             .ThrowsAsync(exception);
@@ -241,7 +241,7 @@ public class AuthControllerTest
     public async Task Login_ShouldReturnTokenInResponse()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("user@example.com", "SecurePassword123!");
         var user = new User
         {
             Id = Guid.NewGuid().ToString(),
@@ -259,8 +259,8 @@ public class AuthControllerTest
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<LoginResponseDTO>(okResult.Value);
-        Assert.Equal(token, response.token);
+        var response = Assert.IsType<LoginResponseDto>(okResult.Value);
+        Assert.Equal(token, response.Token);
     }
 
     [Fact]
@@ -351,7 +351,7 @@ public class AuthControllerTest
     public async Task Login_ShouldReturnCorrectLoginResponseMessage()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("user@example.com", "SecurePassword123!");
         var user = new User
         {
             Id = Guid.NewGuid().ToString(),
@@ -368,15 +368,15 @@ public class AuthControllerTest
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<LoginResponseDTO>(okResult.Value);
-        Assert.Equal("Login successful", response.message);
+        var response = Assert.IsType<LoginResponseDto>(okResult.Value);
+        Assert.Equal("Login successful", response.Message);
     }
 
     [Fact]
     public async Task Login_ShouldReturnUserIdAndEmailInResponse()
     {
         // Arrange
-        var loginDto = new LoginDTO("user@example.com", "SecurePassword123!");
+        var loginDto = new LoginDto("user@example.com", "SecurePassword123!");
         var userId = Guid.NewGuid().ToString();
         var user = new User
         {
@@ -394,8 +394,8 @@ public class AuthControllerTest
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var response = Assert.IsType<LoginResponseDTO>(okResult.Value);
-        Assert.Equal(userId, response.id);
-        Assert.Equal("user@example.com", response.email);
+        var response = Assert.IsType<LoginResponseDto>(okResult.Value);
+        Assert.Equal(userId, response.Id);
+        Assert.Equal("user@example.com", response.Email);
     }
 }

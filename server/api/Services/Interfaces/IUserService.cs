@@ -1,7 +1,9 @@
-﻿namespace api.Services.Interfaces;
+﻿using efscaffold.Models;
+
+namespace api.Services.Interfaces;
 using api.Models;
 using efscaffold;
 public interface IUserService
 {
-    Task<User> CreateUserAsync(CreateUserDTO userDto);
+    Task<User> CreateUserAsync(CreateUserDto userDto);
 }

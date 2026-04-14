@@ -6,6 +6,6 @@ namespace api.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<User?> LoginAsync(LoginDTO loginDto);
+    Task<User?> LoginAsync(LoginDto loginDto);
     User? GetUserInfo(ClaimsPrincipal principal);
 }

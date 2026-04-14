@@ -13,7 +13,7 @@ public class AuthService(
     ILogger<AuthService> logger,
     IPasswordHasher<User> passwordHasher) : IAuthService
 {
-    public async Task<User?> LoginAsync(LoginDTO loginDto)
+    public async Task<User?> LoginAsync(LoginDto loginDto)
     {
         logger.LogInformation("Login attempt for email {Email}", loginDto.Email);
 

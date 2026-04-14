@@ -2,6 +2,7 @@
 using api.Security;
 using api.Services.Interfaces;
 using efscaffold;
+using efscaffold.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,17 +13,17 @@ public class UserService(
     ILogger<UserService> logger,
     IPasswordHasher<User> passwordHasher) : IUserService
 {
-    public async Task<User> CreateUserAsync(CreateUserDTO userDto)
+    public async Task<User> CreateUserAsync(CreateUserDto userDto)
     {
-        logger.LogInformation("Creating user {Email}", userDto.email);
+        logger.LogInformation("Creating user {Email}", userDto.Email);
 
-        if (string.IsNullOrWhiteSpace(userDto.email) || string.IsNullOrWhiteSpace(userDto.password))
+        if (string.IsNullOrWhiteSpace(userDto.Email) || string.IsNullOrWhiteSpace(userDto.Password))
         {
             throw new ArgumentException("Fill out all fields");
         }
 
         var existingUser = await context.Users
-            .FirstOrDefaultAsync(u => u.Email == userDto.email);
+            .FirstOrDefaultAsync(u => u.Email == userDto.Email);
 
         if (existingUser != null)
         {
@@ -32,9 +33,9 @@ public class UserService(
         var user = new User
         {
             Id = Guid.NewGuid().ToString(),
-            Email = userDto.email,
-            Name = userDto.name ?? userDto.email,
-            Password = passwordHasher.HashPassword(null!, userDto.password)
+            Email = userDto.Email,
+            Name = userDto.Name ?? userDto.Email,
+            Password = passwordHasher.HashPassword(null!, userDto.Password)
         };
 
         context.Users.Add(user);

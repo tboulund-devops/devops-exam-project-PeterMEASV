@@ -2,10 +2,10 @@
 using api.Models;
 using api.Services.Interfaces;
 using efscaffold;
+using efscaffold.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Tests;
 
@@ -26,12 +26,12 @@ public class UserControllerTest
     public async Task CreateUser_WithValidData_ShouldReturnOkWithUser()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "SecurePassword123!", "John Doe");
+        var userDto = new CreateUserDto("user@example.com", "SecurePassword123!", "John Doe");
         var createdUser = new User
         {
             Id = Guid.NewGuid().ToString(),
-            Email = userDto.email,
-            Name = userDto.name,
+            Email = userDto.Email,
+            Name = userDto.Name ?? userDto.Email,
             Password = "hashed_password"
         };
 
@@ -50,12 +50,12 @@ public class UserControllerTest
     public async Task CreateUser_WithValidData_ShouldCallService()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "SecurePassword123!", "Jane Doe");
+        var userDto = new CreateUserDto("user@example.com", "SecurePassword123!", "Jane Doe");
         var createdUser = new User
         {
             Id = Guid.NewGuid().ToString(),
-            Email = userDto.email,
-            Name = userDto.name,
+            Email = userDto.Email,
+            Name = userDto.Name ?? userDto.Email,
             Password = "hashed_password"
         };
 
@@ -72,7 +72,7 @@ public class UserControllerTest
     public async Task CreateUser_WithArgumentException_ShouldReturnBadRequest()
     {
         // Arrange
-        var userDto = new CreateUserDTO("", "password", "John Doe");
+        var userDto = new CreateUserDto("", "password", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new ArgumentException("Fill out all fields"));
 
@@ -88,7 +88,7 @@ public class UserControllerTest
     public async Task CreateUser_WithNullEmail_ShouldReturnBadRequest()
     {
         // Arrange
-        var userDto = new CreateUserDTO(null!, "SecurePassword123!", "John Doe");
+        var userDto = new CreateUserDto(null!, "SecurePassword123!", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new ArgumentException("Fill out all fields"));
 
@@ -104,7 +104,7 @@ public class UserControllerTest
     public async Task CreateUser_WithEmptyPassword_ShouldReturnBadRequest()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "", "John Doe");
+        var userDto = new CreateUserDto("user@example.com", "", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new ArgumentException("Fill out all fields"));
 
@@ -120,7 +120,7 @@ public class UserControllerTest
     public async Task CreateUser_WithDuplicateEmail_ShouldReturnBadRequest()
     {
         // Arrange
-        var userDto = new CreateUserDTO("duplicate@example.com", "SecurePassword123!", "John Doe");
+        var userDto = new CreateUserDto("duplicate@example.com", "SecurePassword123!", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new InvalidOperationException("User already exists"));
 
@@ -136,7 +136,7 @@ public class UserControllerTest
     public async Task CreateUser_WithInvalidOperationException_ShouldReturnBadRequest()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "SecurePassword123!", "John Doe");
+        var userDto = new CreateUserDto("user@example.com", "SecurePassword123!", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new InvalidOperationException("User already exists"));
 
@@ -152,7 +152,7 @@ public class UserControllerTest
     public async Task CreateUser_WhenUnexpectedExceptionThrown_ShouldReturnInternalServerError()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "SecurePassword123!", "John Doe");
+        var userDto = new CreateUserDto("user@example.com", "SecurePassword123!", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new Exception("Unexpected error"));
 
@@ -169,7 +169,7 @@ public class UserControllerTest
     public async Task CreateUser_WhenUnexpectedExceptionThrown_ShouldLogError()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "SecurePassword123!", "John Doe");
+        var userDto = new CreateUserDto("user@example.com", "SecurePassword123!", "John Doe");
         var exception = new Exception("Unexpected error");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(exception);
@@ -192,13 +192,13 @@ public class UserControllerTest
     public async Task CreateUser_ShouldReturnCreatedUserData()
     {
         // Arrange
-        var userDto = new CreateUserDTO("test@example.com", "SecurePassword123!", "Test User");
+        var userDto = new CreateUserDto("test@example.com", "SecurePassword123!", "Test User");
         var userId = Guid.NewGuid().ToString();
         var createdUser = new User
         {
             Id = userId,
-            Email = userDto.email,
-            Name = userDto.name,
+            Email = userDto.Email,
+            Name = userDto.Name ?? userDto.Email,
             Password = "hashed_password"
         };
 
@@ -211,15 +211,15 @@ public class UserControllerTest
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         var returnedUser = Assert.IsType<User>(okResult.Value);
         Assert.Equal(userId, returnedUser.Id);
-        Assert.Equal(userDto.email, returnedUser.Email);
-        Assert.Equal(userDto.name, returnedUser.Name);
+        Assert.Equal(userDto.Email, returnedUser.Email);
+        Assert.Equal(userDto.Name, returnedUser.Name);
     }
 
     [Fact]
     public async Task CreateUser_WithWhitespaceEmail_ShouldReturnBadRequest()
     {
         // Arrange
-        var userDto = new CreateUserDTO("   ", "SecurePassword123!", "John Doe");
+        var userDto = new CreateUserDto("   ", "SecurePassword123!", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new ArgumentException("Fill out all fields"));
 
@@ -235,7 +235,7 @@ public class UserControllerTest
     public async Task CreateUser_WithWhitespacePassword_ShouldReturnBadRequest()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "   ", "John Doe");
+        var userDto = new CreateUserDto("user@example.com", "   ", "John Doe");
         _mockUserService.Setup(s => s.CreateUserAsync(userDto))
             .ThrowsAsync(new ArgumentException("Fill out all fields"));
 
@@ -251,12 +251,12 @@ public class UserControllerTest
     public async Task CreateUser_WithoutName_ShouldSucceed()
     {
         // Arrange
-        var userDto = new CreateUserDTO("user@example.com", "SecurePassword123!", null);
+        var userDto = new CreateUserDto("user@example.com", "SecurePassword123!", null);
         var createdUser = new User
         {
             Id = Guid.NewGuid().ToString(),
-            Email = userDto.email,
-            Name = null,
+            Email = userDto.Email,
+            Name = "",
             Password = "hashed_password"
         };
 
@@ -268,6 +268,6 @@ public class UserControllerTest
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         var returnedUser = Assert.IsType<User>(okResult.Value);
-        Assert.Null(returnedUser.Name);
+        Assert.Equal("", returnedUser.Name);
     }
 }

@@ -14,7 +14,7 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
 {
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginDTO loginDto)
+    public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginDto loginDto)
     {
         if (string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
         {
@@ -25,7 +25,7 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
         {
             var user = await authService.LoginAsync(loginDto);
 
-            var response = new LoginResponseDTO(
+            var response = new LoginResponseDto(
                 user!.Id,
                 user.Email,
                 tokenService.CreateToken(user),

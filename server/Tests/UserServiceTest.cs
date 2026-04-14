@@ -3,6 +3,7 @@ using api.Security;
 using api.Services.Classes;
 using api.Services.Interfaces;
 using efscaffold;
+using efscaffold.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -30,10 +31,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "newuser@example.com",
-            password: "SecurePassword123!",
-            name: "John Doe"
+        var userDto = new CreateUserDto(
+            Email: "newuser@example.com",
+            Password: "SecurePassword123!",
+            Name: "John Doe"
         );
 
         // Act
@@ -41,8 +42,8 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(userDto.email, result.Email);
-        Assert.Equal(userDto.name, result.Name);
+        Assert.Equal(userDto.Email, result.Email);
+        Assert.Equal(userDto.Name, result.Name);
         Assert.NotNull(result.Id);
 
         // Verify logger was called with creation messages
@@ -50,7 +51,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Creating user {userDto.email}")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains($"Creating user {userDto.Email}")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -74,20 +75,20 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "persist@example.com",
-            password: "SecurePassword123!",
-            name: "Jane Doe"
+        var userDto = new CreateUserDto(
+            Email: "persist@example.com",
+            Password: "SecurePassword123!",
+            Name: "Jane Doe"
         );
 
         // Act
         var createdUser = await userService.CreateUserAsync(userDto);
 
         // Assert - Verify user is actually in the database
-        var userInDb = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == userDto.email);
+        var userInDb = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == userDto.Email);
         Assert.NotNull(userInDb);
         Assert.Equal(createdUser.Id, userInDb.Id);
-        Assert.Equal(userDto.email, userInDb.Email);
+        Assert.Equal(userDto.Email, userInDb.Email);
     }
 
     [Fact]
@@ -99,10 +100,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: null!,
-            password: "SecurePassword123!",
-            name: "John Doe"
+        var userDto = new CreateUserDto(
+            Email: null!,
+            Password: "SecurePassword123!",
+            Name: "John Doe"
         );
 
         // Act & Assert
@@ -119,10 +120,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "",
-            password: "SecurePassword123!",
-            name: "John Doe"
+        var userDto = new CreateUserDto(
+            Email: "",
+            Password: "SecurePassword123!",
+            Name: "John Doe"
         );
 
         // Act & Assert
@@ -139,10 +140,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "user@example.com",
-            password: null!,
-            name: "John Doe"
+        var userDto = new CreateUserDto(
+            Email: "user@example.com",
+            Password: null!,
+            Name: "John Doe"
         );
 
         // Act & Assert
@@ -159,10 +160,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "user@example.com",
-            password: "",
-            name: "John Doe"
+        var userDto = new CreateUserDto(
+            Email: "user@example.com",
+            Password: "",
+            Name: "John Doe"
         );
 
         // Act & Assert
@@ -180,16 +181,16 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var email = "duplicate@example.com";
-        var userDto1 = new CreateUserDTO(
-            email: email,
-            password: "SecurePassword123!",
-            name: "First User"
+        var userDto1 = new CreateUserDto(
+            Email: email,
+            Password: "SecurePassword123!",
+            Name: "First User"
         );
 
-        var userDto2 = new CreateUserDTO(
-            email: email,
-            password: "DifferentPassword123!",
-            name: "Second User"
+        var userDto2 = new CreateUserDto(
+            Email: email,
+            Password: "DifferentPassword123!",
+            Name: "Second User"
         );
 
         // Create first user
@@ -210,10 +211,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var password = "SecurePassword123!";
-        var userDto = new CreateUserDTO(
-            email: "hashtest@example.com",
-            password: password,
-            name: "Test User"
+        var userDto = new CreateUserDto(
+            Email: "hashtest@example.com",
+            Password: password,
+            Name: "Test User"
         );
 
         // Act
@@ -236,10 +237,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "noname@example.com",
-            password: "SecurePassword123!",
-            name: null
+        var userDto = new CreateUserDto(
+            Email: "noname@example.com",
+            Password: "SecurePassword123!",
+            Name: null
         );
 
         // Act
@@ -247,8 +248,8 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(userDto.email, result.Email);
-        Assert.Equal(userDto.email, result.Name);
+        Assert.Equal(userDto.Email, result.Email);
+        Assert.Equal(userDto.Email, result.Name);
     }
 
     [Fact]
@@ -260,16 +261,16 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto1 = new CreateUserDTO(
-            email: "user1@example.com",
-            password: "SecurePassword123!",
-            name: "User One"
+        var userDto1 = new CreateUserDto(
+            Email: "user1@example.com",
+            Password: "SecurePassword123!",
+            Name: "User One"
         );
 
-        var userDto2 = new CreateUserDTO(
-            email: "user2@example.com",
-            password: "SecurePassword123!",
-            name: "User Two"
+        var userDto2 = new CreateUserDto(
+            Email: "user2@example.com",
+            Password: "SecurePassword123!",
+            Name: "User Two"
         );
 
         // Act
@@ -289,10 +290,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "   ",
-            password: "SecurePassword123!",
-            name: "John Doe"
+        var userDto = new CreateUserDto(
+            Email: "   ",
+            Password: "SecurePassword123!",
+            Name: "John Doe"
         );
 
         // Act & Assert
@@ -309,10 +310,10 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var mockLogger = new Mock<ILogger<UserService>>();
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
-        var userDto = new CreateUserDTO(
-            email: "user@example.com",
-            password: "   ",
-            name: "John Doe"
+        var userDto = new CreateUserDto(
+            Email: "user@example.com",
+            Password: "   ",
+            Name: "John Doe"
         );
 
         // Act & Assert

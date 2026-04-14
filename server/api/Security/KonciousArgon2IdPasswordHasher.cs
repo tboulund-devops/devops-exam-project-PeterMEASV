@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace api.Security;
 
-public class KonciousArgon2idPasswordHasher : IPasswordHasher<User>
+public class KonciousArgon2IdPasswordHasher : IPasswordHasher<User>
 {
     public string HashPassword(User user, string password)
     {

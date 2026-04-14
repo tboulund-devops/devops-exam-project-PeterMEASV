@@ -2,7 +2,7 @@
 
 namespace api.Models;
 
-public record LoginDTO(
+public record LoginDto(
     [Required]
     [EmailAddress]
     string Email,
@@ -10,9 +10,9 @@ public record LoginDTO(
     string Password
 );
 
-public record LoginResponseDTO(
-    string id,
-    string email,
-    string token,
-    string message
+public record LoginResponseDto(
+    string Id,
+    string Email,
+    string Token,
+    string Message
 );

@@ -31,7 +31,7 @@ export const useAuth = () => {
     const logout =  () => {
         setJwt(null);
         setUser(null);
-        void navigate("/login");
+        navigate("/login");
     };
 
     return {

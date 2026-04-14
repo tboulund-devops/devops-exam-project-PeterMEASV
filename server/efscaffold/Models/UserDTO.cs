@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace api.Models;
+namespace efscaffold.Models;
 
-public record CreateUserDTO([Required] [EmailAddress] string email,[Required] [MinLength(8)] string password, string? name);
+public record CreateUserDto([Required] [EmailAddress] string Email,[Required] [MinLength(8)] string Password, string? Name);

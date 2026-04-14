@@ -8,9 +8,7 @@ function Home() {
     useEffect(() => {
 
         // implement cookie check
-
-        void navigate("/Login");
-        return;
+        navigate("/Login");
     })
 
     return (

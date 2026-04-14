@@ -105,7 +105,16 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         {
             throw new KeyNotFoundException(ErrorMessage);
         }
-        var url = await storageService.UploadPhotoAsync(movieDto.Photo);
+
+         string url;
+        if (movieDto.Photo != null)
+        {
+             url = await storageService.UploadPhotoAsync(movieDto.Photo);
+        }
+        else
+        {
+            url = "https://storage.googleapis.com/devops-m2c-posters/default-placeholder.png";
+        }
 
         Movie movie = new Movie()
         {

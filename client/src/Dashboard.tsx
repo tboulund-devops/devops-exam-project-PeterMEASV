@@ -88,12 +88,18 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
             background: "rgba(0,0,0,0.6)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 100,
-        }} onClick={onClose}>
+        }} onClick={onClose} onKeyDown={(e) => {if(e.key === 'Enter') {onClose}}} role="button">
             <div style={{
                 background: "#1a1a1a", borderRadius: "10px",
                 padding: "28px", width: "100%", maxWidth: "440px",
                 display: "flex", flexDirection: "column", gap: "14px",
-            }} onClick={e => e.stopPropagation()}>
+            }} onClick={(e) => e.stopPropagation()} 
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                         e.stopPropagation();
+                             }
+                        }} 
+                    role="button">
 
                 <h2 style={{ margin: 0 }}>Add movie</h2>
 
@@ -138,7 +144,7 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
                     {error && <p style={{ color: "red", margin: 0 }}>{error}</p>}
 
                     <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                        <button type="button" onClick={onClose} style={secondaryButtonStyle}>Cancel</button>
+                        <button type="button" onClick={onClose} onKeyDown={(e) => {if(e.key === 'Enter') {onClose}}} role="button" style={secondaryButtonStyle}>Cancel</button>
                         <button type="submit" disabled={submitting} style={primaryButtonStyle}>
                             {submitting ? "Saving..." : "Create"}
                         </button>
@@ -208,7 +214,7 @@ function Dashboard() {
             )}
 
             <button
-                onClick={() => setModalOpen(true)}
+                onClick={() => setModalOpen(true)} onKeyDown={(e) => {if(e.key === 'Enter') {setModalOpen(true)}}} role="button"
                 style={{
                     position: "fixed", bottom: "28px", right: "28px",
                     width: "56px", height: "56px", borderRadius: "50%",
