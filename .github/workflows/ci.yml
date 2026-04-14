@@ -124,5 +124,5 @@ jobs:
           key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
           script: |
             cd dowa
-            docker-compose pull
-            docker-compose up -d 
+            docker compose pull
+            docker compose up -d
