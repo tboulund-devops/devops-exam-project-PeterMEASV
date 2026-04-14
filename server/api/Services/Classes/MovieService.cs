@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Services.Classes;
 
-public class MovieService(MyDbContext context) : IMovieService
+public class MovieService(MyDbContext context, IStorageService storageService) : IMovieService
 {
     const string ErrorMessage = "User not found";
     public Task<List<Movie>> GetAllMovies()
@@ -105,6 +105,7 @@ public class MovieService(MyDbContext context) : IMovieService
         {
             throw new KeyNotFoundException(ErrorMessage);
         }
+        var url = await storageService.UploadPhotoAsync(movieDto.Photo);
 
         Movie movie = new Movie()
         {
@@ -113,8 +114,10 @@ public class MovieService(MyDbContext context) : IMovieService
             Title = movieDto.Title,
             Year = movieDto.Year,
             Starring = movieDto.Starring,
+            Photo = url
         };
         context.Movies.Add(movie);
+        context.UsersMovies.Add(new UsersMovie {UserId = userId, MovieId = movie.Id});
         await context.SaveChangesAsync();
         return movie;
     }

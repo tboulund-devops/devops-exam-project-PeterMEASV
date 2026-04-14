@@ -33,7 +33,7 @@ public class UserService(
         {
             Id = Guid.NewGuid().ToString(),
             Email = userDto.email,
-            Name = userDto.name,
+            Name = userDto.name ?? userDto.email,
             Password = passwordHasher.HashPassword(null!, userDto.password)
         };
 

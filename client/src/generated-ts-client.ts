@@ -131,17 +131,17 @@ export class MovieClient {
         return Promise.resolve<Movie[]>(null as any);
     }
 
-    getMoviesByUser(userId: string): Promise<Movie[]> {
-        let url_ = this.baseUrl + "/Movie/GetMoviesByUser";
+    getMoviesByUser(userId: string | undefined): Promise<Movie[]> {
+        let url_ = this.baseUrl + "/Movie/GetMoviesByUser?";
+        if (userId === null)
+            throw new globalThis.Error("The parameter 'userId' cannot be null.");
+        else if (userId !== undefined)
+            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(userId);
-
         let options_: RequestInit = {
-            body: content_,
             method: "GET",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -287,7 +287,7 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
-    createMovie(userID: string | undefined, movie: CreateMovieDto): Promise<Movie> {
+    createMovie(userID: string | undefined, title: string | null | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
         let url_ = this.baseUrl + "/Movie/CreateMovie?";
         if (userID === null)
             throw new globalThis.Error("The parameter 'userID' cannot be null.");
@@ -295,13 +295,24 @@ export class MovieClient {
             url_ += "userID=" + encodeURIComponent("" + userID) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(movie);
+        const content_ = new FormData();
+        if (title !== null && title !== undefined)
+            content_.append("Title", title.toString());
+        if (year === null || year === undefined)
+            throw new globalThis.Error("The parameter 'year' cannot be null.");
+        else
+            content_.append("Year", year.toString());
+        if (description !== null && description !== undefined)
+            content_.append("Description", description.toString());
+        if (starring !== null && starring !== undefined)
+            content_.append("Starring", starring.toString());
+        if (photo !== null && photo !== undefined)
+            content_.append("photo", photo.data, photo.fileName ? photo.fileName : "photo");
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -402,19 +413,18 @@ export interface Movie {
     year?: number;
     description?: string | undefined;
     starring?: string | undefined;
-}
-
-export interface CreateMovieDto {
-    title?: string;
-    year?: number;
-    description?: string | undefined;
-    starring?: string | undefined;
+    photo?: string | undefined;
 }
 
 export interface CreateUserDTO {
     email?: string;
     password?: string;
     name?: string | undefined;
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export class ApiException extends Error {

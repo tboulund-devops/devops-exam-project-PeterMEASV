@@ -3,7 +3,9 @@
     "allow": [
       "Bash(dotnet restore:*)",
       "Bash(dotnet test:*)",
-      "Bash(dotnet stryker:*)"
+      "Bash(dotnet stryker:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet add:*)"
     ]
   }
 }

@@ -2,6 +2,7 @@
 using api.Services.Interfaces;
 using efscaffold;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 
 namespace Tests;
@@ -299,7 +300,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1, Actor 2");
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1, Actor 2", null);
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
@@ -327,7 +328,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await ResetDatabaseAsync();
         // Arrange
         var invalidUserId = "nonexistent-user";
-        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1");
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.CreateMovie(createMovieDTO, invalidUserId));
@@ -342,7 +343,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO = new CreateMovieDto("Movie Title", 2023, null, "Actor");
+        var createMovieDTO = new CreateMovieDto("Movie Title", 2023, null, "Actor", null);
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
@@ -364,7 +365,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO = new CreateMovieDto("Movie Title", 2023, "Description", null);
+        var createMovieDTO = new CreateMovieDto("Movie Title", 2023, "Description", null, null);
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
@@ -386,8 +387,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO1 = new CreateMovieDto("Movie 1", 2023, "Desc 1", "Actor 1");
-        var createMovieDTO2 = new CreateMovieDto("Movie 2", 2023, "Desc 2", "Actor 2");
+        var createMovieDTO1 = new CreateMovieDto("Movie 1", 2023, "Desc 1", "Actor 1", null);
+        var createMovieDTO2 = new CreateMovieDto("Movie 2", 2023, "Desc 2", "Actor 2", null);
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();

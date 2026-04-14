@@ -87,18 +87,16 @@
           "Movie"
         ],
         "operationId": "Movie_GetMoviesByUser",
-        "requestBody": {
-          "x-name": "userId",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -244,20 +242,40 @@
             "schema": {
               "type": "string"
             },
-            "x-position": 2
+            "x-position": 1
           }
         ],
         "requestBody": {
-          "x-name": "movie",
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/CreateMovieDto"
+                "type": "object",
+                "properties": {
+                  "Title": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "Year": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "Description": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "Starring": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "photo": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
               }
             }
-          },
-          "required": true,
-          "x-position": 1
+          }
         },
         "responses": {
           "200": {
@@ -377,25 +395,8 @@
           "starring": {
             "type": "string",
             "nullable": true
-          }
-        }
-      },
-      "CreateMovieDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "title": {
-            "type": "string"
           },
-          "year": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "starring": {
+          "photo": {
             "type": "string",
             "nullable": true
           }

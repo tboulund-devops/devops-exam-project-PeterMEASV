@@ -14,4 +14,6 @@ public partial class Movie
     public string? Description { get; set; }
 
     public string? Starring { get; set; }
+
+    public string? Photo { get; set; }
 }

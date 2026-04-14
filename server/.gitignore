@@ -481,3 +481,4 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+/api/project-gamelookup-255a71d64f3e.json

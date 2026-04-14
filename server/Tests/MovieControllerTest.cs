@@ -180,7 +180,7 @@ public class MovieControllerTest
     {
         // Arrange
         var userId = "user1";
-        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1");
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
         var createdMovie = new Movie { Id = Guid.NewGuid().ToString(), Title = "New Movie", Year = 2023, Starring = "Actor 1", Description = "A great movie" };
         _mockService.Setup(s => s.CreateMovie(createMovieDTO, userId)).ReturnsAsync(createdMovie);
 
@@ -197,7 +197,7 @@ public class MovieControllerTest
     {
         // Arrange
         var invalidUserId = "nonexistent-user";
-        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1");
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
         _mockService.Setup(s => s.CreateMovie(createMovieDTO, invalidUserId)).ThrowsAsync(new Exception("User not found"));
 
         // Act

@@ -26,7 +26,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpGet]
     [Route(nameof(GetMoviesByUser))]
-    public async Task<ActionResult<List<Movie>>> GetMoviesByUser([FromBody] string userId)
+    public async Task<ActionResult<List<Movie>>> GetMoviesByUser([FromQuery] string userId)
     {
         try
         {
@@ -84,7 +84,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpPost]
     [Route(nameof(CreateMovie))]
-    public async Task<ActionResult<Movie>> CreateMovie([FromBody] CreateMovieDto movie, string userID)
+    public async Task<ActionResult<Movie>> CreateMovie([FromForm] CreateMovieDto movie, string userID)
     {
         try
         {

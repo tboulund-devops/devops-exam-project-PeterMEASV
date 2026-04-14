@@ -29,6 +29,7 @@ public partial class MyDbContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Photo).HasColumnName("photo");
             entity.Property(e => e.Starring).HasColumnName("starring");
             entity.Property(e => e.Title).HasColumnName("title");
             entity.Property(e => e.Year).HasColumnName("year");

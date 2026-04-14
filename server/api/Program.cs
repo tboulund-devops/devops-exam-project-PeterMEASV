@@ -3,6 +3,9 @@ using api.Security;
 using api.Services.Classes;
 using api.Services.Interfaces;
 using efscaffold;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Storage.V1;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +21,8 @@ public class Program
         var app = builder.Build();
 
         app.UseCors(config => config.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.MapControllers();
         app.UseOpenApi();
         app.UseSwaggerUi();
@@ -38,9 +43,25 @@ public class Program
         services.AddControllers();
         services.AddOpenApiDocument();
         services.AddScoped<IMovieService, MovieService>();
+        services.AddSingleton<IStorageService>(sp =>
+        {
+            var env = sp.GetRequiredService<IWebHostEnvironment>();
+            var keyPath = Path.IsPathRooted(appOptions.GoogleApiKey)
+                ? appOptions.GoogleApiKey
+                : Path.Combine(env.ContentRootPath, appOptions.GoogleApiKey);
+            var json = File.ReadAllText(keyPath);
+            var client = StorageClient.Create(GoogleCredential.FromJson(json));
+            return new StorageService(client, appOptions.GoogleBucketName);
+        });
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITokenService, JwtService>();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = JwtService.ValidationParameters(configuration);
+            });
+        services.AddAuthorization();
     }
 }
