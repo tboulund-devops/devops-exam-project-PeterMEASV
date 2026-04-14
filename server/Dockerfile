@@ -1,6 +1,6 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
-COPY ["server/", "."]
+COPY . .
 RUN dotnet publish "api/api.csproj" \
     -c Release \
     -o /app/publish \
