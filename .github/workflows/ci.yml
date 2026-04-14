@@ -86,7 +86,7 @@ jobs:
           -t ghcr.io/${REPO_LOWER}:staging \
           -t ghcr.io/${REPO_LOWER}:${{ steps.semver-app.outputs.version }} \
           -f server/Dockerfile \
-          .
+          server
           docker push ghcr.io/${REPO_LOWER} --all-tags
           
       - name: Create Release Notes
