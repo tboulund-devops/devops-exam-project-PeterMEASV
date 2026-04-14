@@ -115,6 +115,7 @@ jobs:
           key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
           source: "server/docker-compose.yaml"
           target: dowa/
+          strip_components: 1
           
       - name: Run Docker Compose on staging server
         uses: appleboy/ssh-action@v1.2.1
