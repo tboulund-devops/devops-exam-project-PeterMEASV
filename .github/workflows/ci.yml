@@ -132,3 +132,39 @@ jobs:
             cd dowa
             docker compose pull
             docker compose up -d
+
+  deployment:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deliver Docker Compose file to production
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ vars.DEPLOYMENT_SERVER_IP }}
+          username: ${{ vars.DEPLOYMENT_SERVER_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_SERVER_SSH_KEY }}
+          source: "server/docker-compose.yaml"
+          target: dowa/
+          strip_components: 1
+
+      - name: Run Docker Compose on production server
+        uses: appleboy/ssh-action@v1.2.1
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        with:
+          host: ${{ vars.DEPLOYMENT_SERVER_IP }}
+          username: ${{ vars.DEPLOYMENT_SERVER_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_SERVER_SSH_KEY }}
+          envs: GHCR_TOKEN,GHCR_USER
+          script: |
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            cd dowa
+            docker compose pull
+            docker compose up -d
