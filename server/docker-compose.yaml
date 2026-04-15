@@ -1,6 +1,7 @@
-﻿services:
+services:
   web:
     image: ghcr.io/tboulund-devops/devops-exam-project-petermeasv:staging
     ports:
       - "8080:8080"
-    
+    volumes:
+      - ./google-key.json:/app/project-gamelookup-255a71d64f3e.json:ro

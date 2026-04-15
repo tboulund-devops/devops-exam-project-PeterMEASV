@@ -122,13 +122,15 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         with:
           host: ${{ vars.STAGING_SERVER_IP }}
           username: ${{ vars.STAGING_SERVER_USERNAME }}
           key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
-          envs: GHCR_TOKEN,GHCR_USER
+          envs: GHCR_TOKEN,GHCR_USER,GOOGLE_SERVICE_ACCOUNT_JSON
           script: |
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            echo "$GOOGLE_SERVICE_ACCOUNT_JSON" > ~/dowa/google-key.json
             cd dowa
             docker compose pull
             docker compose up -d
@@ -158,13 +160,15 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         with:
           host: ${{ vars.DEPLOYMENT_SERVER_IP }}
           username: ${{ vars.DEPLOYMENT_SERVER_USERNAME }}
           key: ${{ secrets.DEPLOYMENT_SERVER_SSH_KEY }}
-          envs: GHCR_TOKEN,GHCR_USER
+          envs: GHCR_TOKEN,GHCR_USER,GOOGLE_SERVICE_ACCOUNT_JSON
           script: |
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            echo "$GOOGLE_SERVICE_ACCOUNT_JSON" > ~/dowa/google-key.json
             cd dowa
             docker compose pull
             docker compose up -d
