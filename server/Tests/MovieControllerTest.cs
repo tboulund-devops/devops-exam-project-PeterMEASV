@@ -175,17 +175,18 @@ public class MovieControllerTest
         Assert.Equal("Could not edit movie", badRequest.Value);
     }
 
-    [Fact]
+   [Fact]
     public async Task CreateMovie_ShouldReturnOk_WithCreatedMovie_WhenServiceSucceeds()
     {
         // Arrange
         var userId = "user1";
+        var rating = 0;
         var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
         var createdMovie = new Movie { Id = Guid.NewGuid().ToString(), Title = "New Movie", Year = 2023, Starring = "Actor 1", Description = "A great movie" };
-        _mockService.Setup(s => s.CreateMovie(createMovieDTO, userId)).ReturnsAsync(createdMovie);
+        _mockService.Setup(s => s.CreateMovie(createMovieDTO, userId, It.IsAny<int?>())).ReturnsAsync(createdMovie);
 
         // Act
-        var result = await _controller.CreateMovie(createMovieDTO, userId);
+        var result = await _controller.CreateMovie(createMovieDTO, userId, rating);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -197,14 +198,50 @@ public class MovieControllerTest
     {
         // Arrange
         var invalidUserId = "nonexistent-user";
+        var rating = 0;
         var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
-        _mockService.Setup(s => s.CreateMovie(createMovieDTO, invalidUserId)).ThrowsAsync(new Exception("User not found"));
+        _mockService.Setup(s => s.CreateMovie(createMovieDTO, invalidUserId, It.IsAny<int?>())).ThrowsAsync(new Exception("User not found"));
 
         // Act
-        var result = await _controller.CreateMovie(createMovieDTO, invalidUserId);
+        var result = await _controller.CreateMovie(createMovieDTO, invalidUserId, rating);
 
         // Assert
         var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
         Assert.Equal("Could not create movie", badRequest.Value);
     }
+
+    [Fact]
+    public async Task UpdateMovieRating_ShouldReturnOk_WhenServiceSucceeds()
+    {
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var rating = 8;
+        _mockService.Setup(s => s.UpdateMovieRating(userId, movieId, rating)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.UpdateMovieRating(userId, movieId, rating);
+
+        // Assert
+        Assert.IsType<OkResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateMovieRating_ShouldReturnBadRequest_WhenServiceThrows()
+    {
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var rating = 11;
+        _mockService.Setup(s => s.UpdateMovieRating(userId, movieId, rating))
+            .ThrowsAsync(new ArgumentException("Rating must be between 1 and 10"));
+
+        // Act
+        var result = await _controller.UpdateMovieRating(userId, movieId, rating);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Rating must be between 1 and 10", badRequest.Value);
+    }
 }
+
