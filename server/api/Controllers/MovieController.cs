@@ -69,6 +69,22 @@ public class MovieController(IMovieService movieService) : ControllerBase
     }
     
     [HttpPatch]
+    [Route(nameof(UpdateMovieRating))]
+    public async Task<ActionResult> UpdateMovieRating([FromQuery] string userId, [FromQuery] string movieId, [FromQuery] int rating)
+    {
+        try
+        {
+            await movieService.UpdateMovieRating(userId, movieId, rating);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    
+    [HttpPatch]
     [Route(nameof(EditMovie))]
     public async Task<ActionResult<Movie>> EditMovie([FromBody] Movie movie)
     {
@@ -84,11 +100,11 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpPost]
     [Route(nameof(CreateMovie))]
-    public async Task<ActionResult<Movie>> CreateMovie([FromForm] CreateMovieDto movie, string userID)
+    public async Task<ActionResult<Movie>> CreateMovie([FromForm] CreateMovieDto movie, [FromQuery] string userID, [FromQuery] int rating)
     {
         try
         {
-            return Ok(await movieService.CreateMovie(movie, userID));
+            return Ok(await movieService.CreateMovie(movie, userID, rating));
         }
         catch (Exception)
         {

@@ -71,6 +71,27 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         context.UsersMovies.Add(new UsersMovie {UserId = userId, MovieId = movieId});
         await context.SaveChangesAsync();
     }
+    
+    public async Task UpdateMovieRating(string userId, string movieId, int rating)
+    {
+        if (rating < 1 || rating > 10)
+        {
+            throw new ArgumentException("Rating must be between 1 and 10");
+        }
+        
+        UsersMovie? userMovie = await context.UsersMovies
+            .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+
+        if (userMovie == null)
+        {
+            throw new KeyNotFoundException("User movie not found");
+        }
+
+        userMovie.Rating = rating;
+        context.Update(userMovie);
+        await context.SaveChangesAsync();
+    }
+
 
     public Task<Movie> EditMovie(Movie movie)
     {
@@ -97,7 +118,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         return Task.FromResult(existingMovie);
     }
 
-    public async Task<Movie> CreateMovie(CreateMovieDto movieDto, string userId)
+    public async Task<Movie> CreateMovie(CreateMovieDto movieDto, string userId, int? rating = null)
     {
         
         User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
@@ -106,7 +127,12 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
             throw new KeyNotFoundException(ErrorMessage);
         }
 
-         string url;
+        if (rating.HasValue && (rating < 1 || rating > 10))
+        {
+            throw new ArgumentException("Rating must be between 1 and 10");
+        }
+
+        string url;
         if (movieDto.Photo != null)
         {
              url = await storageService.UploadPhotoAsync(movieDto.Photo);
@@ -126,7 +152,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
             Photo = url
         };
         context.Movies.Add(movie);
-        context.UsersMovies.Add(new UsersMovie {UserId = userId, MovieId = movie.Id});
+        context.UsersMovies.Add(new UsersMovie {UserId = userId, MovieId = movie.Id, Rating = rating});
         await context.SaveChangesAsync();
         return movie;
     }

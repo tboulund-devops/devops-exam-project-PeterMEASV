@@ -250,6 +250,56 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
+    updateMovieRating(userId: string | undefined, movieId: string | undefined, rating: number | undefined): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/Movie/UpdateMovieRating?";
+        if (userId === null)
+            throw new globalThis.Error("The parameter 'userId' cannot be null.");
+        else if (userId !== undefined)
+            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
+        if (movieId === null)
+            throw new globalThis.Error("The parameter 'movieId' cannot be null.");
+        else if (movieId !== undefined)
+            url_ += "movieId=" + encodeURIComponent("" + movieId) + "&";
+        if (rating === null)
+            throw new globalThis.Error("The parameter 'rating' cannot be null.");
+        else if (rating !== undefined)
+            url_ += "rating=" + encodeURIComponent("" + rating) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PATCH",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMovieRating(_response);
+        });
+    }
+
+    protected processUpdateMovieRating(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
     editMovie(movie: Movie): Promise<Movie> {
         let url_ = this.baseUrl + "/Movie/EditMovie";
         url_ = url_.replace(/[?&]$/, "");
@@ -287,12 +337,16 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
-    createMovie(userID: string | undefined, title: string | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
+    createMovie(userID: string | undefined, rating: number | undefined, title: string | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
         let url_ = this.baseUrl + "/Movie/CreateMovie?";
         if (userID === null)
             throw new globalThis.Error("The parameter 'userID' cannot be null.");
         else if (userID !== undefined)
             url_ += "userID=" + encodeURIComponent("" + userID) + "&";
+        if (rating === null)
+            throw new globalThis.Error("The parameter 'rating' cannot be null.");
+        else if (rating !== undefined)
+            url_ += "rating=" + encodeURIComponent("" + rating) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -427,6 +481,13 @@ export interface CreateUserDto {
 export interface FileParameter {
     data: any;
     fileName: string;
+}
+
+export interface FileResponse {
+    data: Blob;
+    status: number;
+    fileName?: string;
+    headers?: { [name: string]: any };
 }
 
 export class ApiException extends Error {

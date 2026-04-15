@@ -27,6 +27,7 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
     const [year, setYear] = useState("");
     const [description, setDescription] = useState("");
     const [starring, setStarring] = useState("");
+    const [rating, setRating] = useState("");
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -42,6 +43,11 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim() || !year.trim()) return;
+
+        if (rating && (parseInt(rating) < 1 || parseInt(rating) > 10)) {
+            setError("Rating must be between 1 and 10");
+            return;
+        }
 
         setSubmitting(true);
         setError(null);
@@ -63,15 +69,17 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
             if (starring.trim()) formData.append("starring", starring.trim());
             if (photoFile) formData.append("photo", photoFile, photoFile.name);
 
+            let url = `${finalUrl}/Movie/CreateMovie?userID=${encodeURIComponent(userId)}`;
+            if (rating) {
+                url += `&rating=${encodeURIComponent(rating)}`;
+            }
+
             const token = tokenStorage.getItem(TOKEN_KEY, null);
-            const response = await fetch(
-                `${finalUrl}/Movie/CreateMovie?userID=${encodeURIComponent(userId)}`,
-                {
-                    method: "POST",
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
-                    body: formData,
-                }
-            );
+            const response = await fetch(url, {
+                method: "POST",
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                body: formData,
+            });
             if (!response.ok) throw new Error("Failed");
             const created: Movie = await response.json();
             onCreated(created);
@@ -126,6 +134,16 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
                         rows={3}
                         style={{ ...inputStyle, resize: "vertical" }}
                     />
+                    <input
+                        placeholder="Rating (1-10, optional)"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={rating}
+                        onChange={e => setRating(e.target.value)}
+                        style={inputStyle}
+                    />
+
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                         <label htmlFor="poster-upload" style={{ fontSize: "0.85rem", color: "#aaa" }}>Poster (optional)</label>

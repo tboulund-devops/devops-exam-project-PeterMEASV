@@ -197,6 +197,54 @@
         }
       }
     },
+    "/Movie/UpdateMovieRating": {
+      "patch": {
+        "tags": [
+          "Movie"
+        ],
+        "operationId": "Movie_UpdateMovieRating",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "movieId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "rating",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Movie/EditMovie": {
       "patch": {
         "tags": [
@@ -243,6 +291,15 @@
               "type": "string"
             },
             "x-position": 1
+          },
+          {
+            "name": "rating",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 2
           }
         ],
         "requestBody": {
