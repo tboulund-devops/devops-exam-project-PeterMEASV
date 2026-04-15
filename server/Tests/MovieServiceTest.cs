@@ -554,4 +554,46 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         Assert.Equal("Rating must be between 1 and 10", exception.Message);
     }
 
+    [Fact]
+    public async Task GetMovieRatingByUser_ShouldGetMovieRatingSuccesfully()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var Rating = 7;
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId, Rating = 7});
+        await dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var result = await movieService.GetMovieRatingByUser(userId, movieId);
+        Assert.Equal(Rating, result);
+    }
+    
+    [Fact]
+    public async Task GetMovieRatingByUser_InvalidMovieShouldFail()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var movieId = "fakeMovie";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.GetMovieRatingByUser(userId, movieId));
+        Assert.Equal("User movie not found", exception.Message);
+    }
+
 }

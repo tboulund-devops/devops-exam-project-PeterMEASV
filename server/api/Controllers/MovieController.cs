@@ -83,6 +83,21 @@ public class MovieController(IMovieService movieService) : ControllerBase
         }
     }
 
+    [HttpGet]
+    [Route(nameof(GetMovieRatingByUser))]
+    public async Task<ActionResult<int>> GetMovieRatingByUser([FromQuery] string userId, [FromQuery] string movieId)
+    {
+        try
+        {
+            var rating = await movieService.GetMovieRatingByUser(userId, movieId);
+            return Ok(rating);
+        }
+        catch (Exception)
+        {
+            return BadRequest("Could not fetch movie rating");
+        }
+    }
+
     
     [HttpPatch]
     [Route(nameof(EditMovie))]

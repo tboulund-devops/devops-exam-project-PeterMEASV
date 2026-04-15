@@ -4,6 +4,7 @@ import Home from "./Home.tsx";
 import Dashboard from "./Dashboard.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import RequireAuth from "./RequireAuth.tsx";
+import MovieDetails from "./MovieDetails.tsx";
 
 export const connectionIdAtom = atom<string | null>(null);
 
@@ -22,6 +23,10 @@ export const routesAtom = atom<RouteObject[]>([
             {
                 path: "/dashboard",
                 element: <Dashboard />
+            },
+            {
+                path:"/movie/:movieId",
+                element: <MovieDetails />
             }
         ]
     }

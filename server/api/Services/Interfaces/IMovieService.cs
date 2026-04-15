@@ -12,5 +12,6 @@ public interface IMovieService
     Task<Movie> EditMovie(Movie movie);
     Task<Movie> CreateMovie(CreateMovieDto movieDto, string userId, int? rating = null);
     Task UpdateMovieRating(string userId, string movieId, int rating);
+    Task<int?> GetMovieRatingByUser(string userId, string movieId);
 
 }

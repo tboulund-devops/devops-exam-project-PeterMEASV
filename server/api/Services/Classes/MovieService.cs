@@ -92,6 +92,17 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         await context.SaveChangesAsync();
     }
 
+    public Task<int?> GetMovieRatingByUser(string userId, string movieId)
+    {
+        UsersMovie? userMovie = context.UsersMovies.FirstOrDefault(um => um.UserId == userId && um.MovieId == movieId);
+        if (userMovie == null)
+        {
+            throw new KeyNotFoundException("User movie not found");
+        }
+        
+        return Task.FromResult(userMovie.Rating);
+    }
+
 
     public Task<Movie> EditMovie(Movie movie)
     {

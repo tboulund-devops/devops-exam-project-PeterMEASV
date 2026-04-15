@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
+import { useNavigate } from "react-router";
 import { finalUrl } from "./baseUrl.ts";
 import type { Movie } from "./generated-ts-client.ts";
 import { TOKEN_KEY, tokenAtom, tokenStorage, userInfoAtom } from "./Token.tsx";
@@ -176,6 +177,7 @@ function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!userId) {
@@ -213,7 +215,11 @@ function Dashboard() {
                     padding: "16px",
                 }}>
                     {movies.map(movie => (
-                        <div key={movie.id} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <div
+                            key={movie.id}
+                            onClick={() => navigate(`/movie/${movie.id}`, { state: { movie } })}
+                            style={{ display: "flex", flexDirection: "column", gap: "8px", cursor: "pointer" }}
+                        >
                             {movie.photo
                                 ? <img src={movie.photo} alt={movie.title} style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover", borderRadius: "6px" }} />
                                 : <div style={{ width: "100%", aspectRatio: "2/3", background: "#2a2a2a", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>No poster</div>

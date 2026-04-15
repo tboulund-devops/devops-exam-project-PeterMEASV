@@ -243,5 +243,39 @@ public class MovieControllerTest
         var badRequest = Assert.IsType<BadRequestObjectResult>(result);
         Assert.Equal("Rating must be between 1 and 10", badRequest.Value);
     }
+
+    [Fact]
+    public async Task GetMovieRatingByUser_ShouldReturnOk_WithRating_WhenServiceSucceeds()
+    {
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var rating = 7;
+        _mockService.Setup(s => s.GetMovieRatingByUser(userId, movieId)).ReturnsAsync(rating);
+
+        // Act
+        var result = await _controller.GetMovieRatingByUser(userId, movieId);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(rating, okResult.Value);
+    }
+
+    [Fact]
+    public async Task GetMovieRatingByUser_ShouldReturnBadRequest_WhenServiceThrows()
+    {
+        // Arrange
+        var userId = "user1";
+        var movieId = "nonexistent-movie";
+        _mockService.Setup(s => s.GetMovieRatingByUser(userId, movieId))
+            .ThrowsAsync(new KeyNotFoundException("User movie not found"));
+
+        // Act
+        var result = await _controller.GetMovieRatingByUser(userId, movieId);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("Could not fetch movie rating", badRequest.Value);
+    }
 }
 

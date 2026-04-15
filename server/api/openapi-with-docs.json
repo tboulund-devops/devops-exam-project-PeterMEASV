@@ -245,6 +245,45 @@
         }
       }
     },
+    "/Movie/GetMovieRatingByUser": {
+      "get": {
+        "tags": [
+          "Movie"
+        ],
+        "operationId": "Movie_GetMovieRatingByUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "movieId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Movie/EditMovie": {
       "patch": {
         "tags": [
