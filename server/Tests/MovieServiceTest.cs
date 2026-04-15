@@ -402,4 +402,156 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         Assert.NotNull(result2.Id);
         Assert.NotEqual(result1.Id, result2.Id);
     }
+
+    [Fact]
+    public async Task CreateMovie_WithRating_ShouldSetRatingInUsersMovies()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var rating = 8;
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
+        
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.CreateMovie(createMovieDTO, userId, rating);
+
+        // Assert
+        Assert.NotNull(result);
+        var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == result.Id);
+        Assert.NotNull(userMovie);
+        Assert.Equal(rating, userMovie.Rating);
+    }
+
+    [Fact]
+    public async Task CreateMovie_WithInvalidRating_ShouldThrowArgumentException()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var invalidRating = 11;
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
+        
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.CreateMovie(createMovieDTO, userId, invalidRating));
+        Assert.Equal("Rating must be between 1 and 10", exception.Message);
+    }
+
+    [Fact]
+    public async Task CreateMovie_WithNullRating_ShouldCreateMovieWithoutRating()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
+        
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.CreateMovie(createMovieDTO, userId, null);
+
+        // Assert
+        Assert.NotNull(result);
+        var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == result.Id);
+        Assert.NotNull(userMovie);
+        Assert.Null(userMovie.Rating);
+    }
+
+    [Fact]
+    public async Task UpdateMovieRating_ShouldUpdateRatingSuccessfully()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var newRating = 9;
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId, Rating = 5 });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        await movieService.UpdateMovieRating(userId, movieId, newRating);
+
+        // Assert
+        var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        Assert.NotNull(userMovie);
+        Assert.Equal(newRating, userMovie.Rating);
+    }
+
+    [Fact]
+    public async Task UpdateMovieRating_WithInvalidRating_ShouldThrowArgumentException()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var invalidRating = 0;
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId });
+        await dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.UpdateMovieRating(userId, movieId, invalidRating));
+        Assert.Equal("Rating must be between 1 and 10", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateMovieRating_WithNonExistentUserMovie_ShouldThrowKeyNotFoundException()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var rating = 8;
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.UpdateMovieRating(userId, movieId, rating));
+        Assert.Equal("User movie not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateMovieRating_WithRatingTooHigh_ShouldThrowArgumentException()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var invalidRating = 15;
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId });
+        await dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.UpdateMovieRating(userId, movieId, invalidRating));
+        Assert.Equal("Rating must be between 1 and 10", exception.Message);
+    }
+
 }
