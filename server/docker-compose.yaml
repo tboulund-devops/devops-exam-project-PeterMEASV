@@ -4,8 +4,10 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - AppOptions__DBConnectionString=${DB_CONNECTION_STRING}
       - AppOptions__GoogleBucketName=${GOOGLE_BUCKET_NAME}
       - AppOptions__GoogleApiKey=/app/project-gamelookup-255a71d64f3e.json
+      - AppOptions__JwtSecret=${JWT_SECRET}
     volumes:
       - ./google-key.json:/app/project-gamelookup-255a71d64f3e.json:ro
