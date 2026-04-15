@@ -3,5 +3,9 @@ services:
     image: ghcr.io/tboulund-devops/devops-exam-project-petermeasv:staging
     ports:
       - "8080:8080"
+    environment:
+      - AppOptions__DBConnectionString=${DB_CONNECTION_STRING}
+      - AppOptions__GoogleBucketName=${GOOGLE_BUCKET_NAME}
+      - AppOptions__GoogleApiKey=/app/project-gamelookup-255a71d64f3e.json
     volumes:
       - ./google-key.json:/app/project-gamelookup-255a71d64f3e.json:ro
