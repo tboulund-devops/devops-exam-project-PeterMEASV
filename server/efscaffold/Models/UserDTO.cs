@@ -2,4 +2,4 @@
 
 namespace efscaffold.Models;
 
-public record CreateUserDto([Required] [EmailAddress] string Email,[Required] [MinLength(8)] string Password, string? Name);
+public record CreateUserDto([Required] string userId, [Required] [EmailAddress] string Email,[Required] [MinLength(8)] string Password, string? Name);

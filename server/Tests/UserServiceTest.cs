@@ -16,6 +16,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
 {
     private async Task ClearDatabaseAsync()
     {
+        dbContext.UsersUsers.RemoveRange(dbContext.UsersUsers);
         dbContext.UsersMovies.RemoveRange(dbContext.UsersMovies);
         dbContext.Movies.RemoveRange(dbContext.Movies);
         dbContext.Users.RemoveRange(dbContext.Users);
@@ -32,6 +33,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "newuser",
             Email: "newuser@example.com",
             Password: "SecurePassword123!",
             Name: "John Doe"
@@ -76,6 +78,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "persist",
             Email: "persist@example.com",
             Password: "SecurePassword123!",
             Name: "Jane Doe"
@@ -101,6 +104,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "null",
             Email: null!,
             Password: "SecurePassword123!",
             Name: "John Doe"
@@ -121,6 +125,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "empty",
             Email: "",
             Password: "SecurePassword123!",
             Name: "John Doe"
@@ -141,6 +146,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "null",
             Email: "user@example.com",
             Password: null!,
             Name: "John Doe"
@@ -161,6 +167,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "empty",
             Email: "user@example.com",
             Password: "",
             Name: "John Doe"
@@ -182,12 +189,14 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
 
         var email = "duplicate@example.com";
         var userDto1 = new CreateUserDto(
+            userId: "first",
             Email: email,
             Password: "SecurePassword123!",
             Name: "First User"
         );
 
         var userDto2 = new CreateUserDto(
+            userId: "second",
             Email: email,
             Password: "DifferentPassword123!",
             Name: "Second User"
@@ -212,6 +221,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
 
         var password = "SecurePassword123!";
         var userDto = new CreateUserDto(
+            userId: "hashtest",
             Email: "hashtest@example.com",
             Password: password,
             Name: "Test User"
@@ -238,6 +248,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "noname",
             Email: "noname@example.com",
             Password: "SecurePassword123!",
             Name: null
@@ -262,12 +273,14 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto1 = new CreateUserDto(
+            userId: "unique",
             Email: "user1@example.com",
             Password: "SecurePassword123!",
             Name: "User One"
         );
 
         var userDto2 = new CreateUserDto(
+            userId: "unique2",
             Email: "user2@example.com",
             Password: "SecurePassword123!",
             Name: "User Two"
@@ -291,6 +304,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "whitespace",
             Email: "   ",
             Password: "SecurePassword123!",
             Name: "John Doe"
@@ -311,6 +325,7 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
 
         var userDto = new CreateUserDto(
+            userId: "whitespace",
             Email: "user@example.com",
             Password: "   ",
             Name: "John Doe"
@@ -319,5 +334,220 @@ public class UserServiceTest(MyDbContext dbContext, IPasswordHasher<User> passwo
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(
             () => userService.CreateUserAsync(userDto));
+    }
+
+    [Fact]
+    public async Task GetAllFriendsForUser_WithNoFriends_ShouldReturnEmptyList()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        var userDto = new CreateUserDto(userId: "lonely", Email: "lonely@example.com", Password: "SecurePassword123!", Name: "Lonely User");
+        await userService.CreateUserAsync(userDto);
+
+        // Act
+        var result = await userService.GetAllFriendsForUser("lonely");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetAllFriendsForUser_AfterAddingFriend_ShouldReturnFriend()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        await userService.AddFriendForUser("userA", "userB");
+
+        // Act
+        var friends = await userService.GetAllFriendsForUser("userA");
+
+        // Assert
+        Assert.Single(friends);
+        Assert.Equal("userB", friends[0].Id);
+    }
+
+    [Fact]
+    public async Task GetAllFriendsForUser_FriendshipIsBidirectional_ShouldReturnFriendForBothUsers()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        await userService.AddFriendForUser("userA", "userB");
+
+        // Act
+        var friendsOfA = await userService.GetAllFriendsForUser("userA");
+        var friendsOfB = await userService.GetAllFriendsForUser("userB");
+
+        // Assert
+        Assert.Single(friendsOfA);
+        Assert.Single(friendsOfB);
+        Assert.Equal("userB", friendsOfA[0].Id);
+        Assert.Equal("userA", friendsOfB[0].Id);
+    }
+
+    [Fact]
+    public async Task GetAllFriendsForUser_WithNonExistentUser_ShouldThrowKeyNotFoundException()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => userService.GetAllFriendsForUser("doesnotexist"));
+    }
+    
+
+    [Fact]
+    public async Task AddFriendForUser_WithValidIds_ShouldPersistFriendship()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        // Act
+        await userService.AddFriendForUser("userA", "userB");
+
+        // Assert
+        var friendships = dbContext.UsersUsers.Where(uu =>
+            (uu.UserId == "userA" && uu.FriendId == "userB") ||
+            (uu.UserId == "userB" && uu.FriendId == "userA")).ToList();
+        Assert.Equal(2, friendships.Count);
+    }
+
+    [Fact]
+    public async Task AddFriendForUser_WithDuplicateFriendship_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        await userService.AddFriendForUser("userA", "userB");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => userService.AddFriendForUser("userA", "userB"));
+    }
+
+    [Fact]
+    public async Task AddFriendForUser_WithNonExistentUser_ShouldThrowKeyNotFoundException()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => userService.AddFriendForUser("userA", "ghost"));
+    }
+
+    [Fact]
+    public async Task AddFriendForUser_WithNonExistentRequestingUser_ShouldThrowKeyNotFoundException()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => userService.AddFriendForUser("ghost", "userB"));
+    }
+    
+
+    [Fact]
+    public async Task RemoveFriendForUser_WithExistingFriendship_ShouldRemoveFriendship()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        await userService.AddFriendForUser("userA", "userB");
+
+        // Act
+        await userService.RemoveFriendForUser("userA", "userB");
+
+        // Assert
+        var friends = await userService.GetAllFriendsForUser("userA");
+        Assert.Empty(friends);
+    }
+
+    [Fact]
+    public async Task RemoveFriendForUser_ShouldRemoveFriendshipInBothDirections()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        await userService.AddFriendForUser("userA", "userB");
+        await userService.RemoveFriendForUser("userA", "userB");
+
+        // Assert B no longer has A as friend either
+        var friendsOfB = await userService.GetAllFriendsForUser("userB");
+        Assert.Empty(friendsOfB);
+    }
+
+    [Fact]
+    public async Task RemoveFriendForUser_WithNonExistentFriendship_ShouldThrowKeyNotFoundException()
+    {
+        // Arrange
+        await ClearDatabaseAsync();
+
+        var mockLogger = new Mock<ILogger<UserService>>();
+        var userService = new UserService(dbContext, mockLogger.Object, passwordHasher);
+
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userA", Email: "userA@example.com", Password: "SecurePassword123!", Name: "User A"));
+        await userService.CreateUserAsync(new CreateUserDto(userId: "userB", Email: "userB@example.com", Password: "SecurePassword123!", Name: "User B"));
+
+        // Act & Assert - no friendship exists yet
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => userService.RemoveFriendForUser("userA", "userB"));
     }
 }

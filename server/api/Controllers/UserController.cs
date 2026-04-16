@@ -34,4 +34,52 @@ public class UserController(IUserService userService, ILogger<UserController> lo
             return StatusCode(500, "An error occurred while creating the user");
         }
     }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<ActionResult<List<User>>> GetAllFriendsForUser(string userId)
+    {
+        try
+        {
+            var friends = await userService.GetAllFriendsForUser(userId);
+            return Ok(friends);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting friends");
+            return StatusCode(500, "An error occurred while getting friends");
+        }
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<ActionResult> AddFriendForUser(string userId, string friendId)
+    {
+        try
+        {
+            await userService.AddFriendForUser(userId, friendId);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error adding friend");
+            return StatusCode(500, "An error occurred while adding friend");
+        }
+    }
+
+    [HttpDelete]
+    [AllowAnonymous]
+    public async Task<ActionResult> RemoveFriendForUser(string userId, string friendId)
+    {
+        try
+        {
+            await userService.RemoveFriendForUser(userId, friendId);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error removing friend");
+            return StatusCode(500, "An error occurred while removing friend");
+        }
+    }
 }

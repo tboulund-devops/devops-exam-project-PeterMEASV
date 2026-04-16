@@ -19,6 +19,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<UsersMovie> UsersMovies { get; set; }
 
+    public virtual DbSet<UsersUser> UsersUsers { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Movie>(entity =>
@@ -71,6 +73,19 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.MovieId).HasColumnName("movie_id");
             entity.Property(e => e.Rating).HasColumnName("rating");
+            entity.Property(e => e.Seen)
+                .HasDefaultValue(false)
+                .HasColumnName("seen");
+        });
+
+        modelBuilder.Entity<UsersUser>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.FriendId }).HasName("users_users_pkey");
+
+            entity.ToTable("users_users", "filmjournal");
+
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.FriendId).HasColumnName("friend_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

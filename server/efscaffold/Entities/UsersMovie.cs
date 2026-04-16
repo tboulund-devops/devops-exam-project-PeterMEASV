@@ -10,4 +10,6 @@ public partial class UsersMovie
     public string MovieId { get; set; } = null!;
 
     public int? Rating { get; set; }
+
+    public bool? Seen { get; set; }
 }

@@ -34,6 +34,7 @@ public class Startup
         
         services.AddScoped<IMovieService, MovieService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPasswordHasher<User>, KonciousArgon2IdPasswordHasher>();
         
         // Use a fresh in-memory database per test scope to avoid conflicts
