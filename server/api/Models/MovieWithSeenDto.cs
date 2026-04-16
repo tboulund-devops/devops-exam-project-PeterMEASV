@@ -2,8 +2,6 @@
 
 namespace api.Models;
 
-public record CreateMovieDTO([Required]string Title, [Required]int Year, string? Description, string? Starring, IFormFile? Photo);
-
 public record MovieWithSeenDto(
     string Id,
     string Title,

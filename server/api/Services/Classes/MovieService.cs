@@ -8,6 +8,8 @@ namespace api.Services.Classes;
 public class MovieService(MyDbContext context, IStorageService storageService) : IMovieService
 {
     const string ErrorMessage = "User not found";
+    const string MovieNotFound = "Movie not found";
+    const string UserMovieNotFound = "User movie not found";
     public Task<List<Movie>> GetAllMovies()
     {
         return context.Movies.ToListAsync();
@@ -58,7 +60,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         }
         else
         {
-            throw new KeyNotFoundException("User movie not found");
+            throw new KeyNotFoundException(UserMovieNotFound);
         }
     }
 
@@ -73,7 +75,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         Movie? movie = await context.Movies.FirstOrDefaultAsync(m => m.Id == movieId);
         if (movie == null)
         {
-            throw new KeyNotFoundException("Movie not found");
+            throw new KeyNotFoundException(MovieNotFound);
         }
         
         if (user == null || movie == null)
@@ -97,7 +99,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
 
         if (userMovie == null)
         {
-            throw new KeyNotFoundException("User movie not found");
+            throw new KeyNotFoundException(UserMovieNotFound);
         }
 
         userMovie.Rating = rating;
@@ -110,7 +112,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         UsersMovie? userMovie = context.UsersMovies.FirstOrDefault(um => um.UserId == userId && um.MovieId == movieId);
         if (userMovie == null)
         {
-            throw new KeyNotFoundException("User movie not found");
+            throw new KeyNotFoundException(UserMovieNotFound);
         }
         
         return Task.FromResult(userMovie.Rating);
@@ -129,7 +131,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
 
         if (existingMovie == null)
         {
-            throw new KeyNotFoundException("Movie not found"); 
+            throw new KeyNotFoundException(MovieNotFound); 
         }
         
         existingMovie.Title = movie.Title;
@@ -192,7 +194,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         Movie? movie = await context.Movies.FirstOrDefaultAsync(m => m.Id == movieId);
         if (movie == null)
         {
-            throw new KeyNotFoundException("Movie not found");
+            throw new KeyNotFoundException(MovieNotFound);
         }
         
         UsersMovie? userMovie = await context.UsersMovies
@@ -200,7 +202,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
 
         if (userMovie == null)
         {
-            throw new KeyNotFoundException("User movie not found");
+            throw new KeyNotFoundException(UserMovieNotFound);
         }
 
         userMovie.Seen = seen;

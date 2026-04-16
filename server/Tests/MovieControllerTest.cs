@@ -403,7 +403,7 @@ public class MovieControllerTest
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var returnedMovies = Assert.IsAssignableFrom<List<MovieWithSeenDto>>(okResult.Value);
+        var returnedMovies = Assert.IsType<List<MovieWithSeenDto>>(okResult.Value);
         Assert.Equal(2, returnedMovies.Count);
         
         var seenMovie = returnedMovies.First(m => m.Id == "1");
@@ -414,4 +414,5 @@ public class MovieControllerTest
         Assert.False(unseenMovie.Seen);
         Assert.Null(unseenMovie.Rating);
     }
+
 }
