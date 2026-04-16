@@ -1062,7 +1062,7 @@ jobs:
             --log-level info --proxy-logs-dir /tmp/gh-aw/sandbox/firewall/logs \
             --audit-dir /tmp/gh-aw/sandbox/firewall/audit --enable-host-access \
             --image-tag 0.25.18 --skip-pull --enable-api-proxy \
-            -- /bin/bash -c 'export GEMINI_API_KEY="'"$GEMINI_API_KEY"'" ; export GEMINI_API_BASE_URL="'"$GEMINI_API_BASE_URL"'" ; export PATH="$(find /opt/hostedtoolcache -maxdepth 4 -type d -name bin 2>/dev/null | tr '\''\n'\'' '\'':'\'')$PATH"; [ -n "$GOROOT" ] && export PATH="$GOROOT/bin:$PATH" || true; test -n "$GEMINI_API_KEY"; gemini --yolo --output-format stream-json --prompt "$(cat /tmp/gh-aw/aw-prompts/prompt.txt)"' \
+            -- /bin/bash -c 'export GEMINI_API_KEY="'"$GEMINI_API_KEY"'" ; export GEMINI_API_BASE_URL="'"$GEMINI_API_BASE_URL"'" ; export PATH="$(find /opt/hostedtoolcache -maxdepth 4 -type d -name bin 2>/dev/null | tr '\''\n'\'' '\'':'\'')$PATH"; [ -n "$GOROOT" ] && export PATH="$GOROOT/bin:$PATH" || true; test -n "$GEMINI_API_KEY"; gemini --yolo --output-format json --prompt "$(cat /tmp/gh-aw/aw-prompts/prompt.txt)"' \
             2>&1 | tee -a /tmp/gh-aw/threat-detection/detection.log
         env:
           DEBUG: gemini-cli:*
