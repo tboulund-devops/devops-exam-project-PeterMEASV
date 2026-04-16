@@ -114,7 +114,16 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
           sudo apt-get update
           sudo apt-get install k6 -y
-          k6 run k6/Load_test.js
+          k6 run k6/Load_test.js 2>&1 | tee k6-results-${{ github.run_number }}-$(date +%Y%m%d_%H%M%S).txt
+
+      - name: Upload k6 results to staging server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ vars.STAGING_SERVER_IP }}
+          username: ${{ vars.STAGING_SERVER_USERNAME }}
+          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+          source: "k6-results-*.txt"
+          target: "~/k6-logs/"
 
       - name: Deliver Docker Compose file to staging
         uses: appleboy/scp-action@master
@@ -189,3 +198,6 @@ jobs:
             cd dowa
             docker compose pull
             docker compose up -d
+            
+      - name: Deploy frontend to Fly.io
+        

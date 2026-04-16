@@ -2,7 +2,7 @@
 import {forceLogout, TOKEN_KEY, tokenStorage} from "./Token.tsx";
 
 const isProduction = import.meta.env.PROD;
-const prod = "https://m2c-filmjournal-server.fly.dev";
+const prod = "5.189.151.230";
 const dev = "http://localhost:5107";
 
 const customFetch = async (url: RequestInfo, init?: RequestInit) => {
