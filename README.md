@@ -1,6 +1,6 @@
 # [The Film Journal]
 
-A simple web-application which gives the user the ability to give raitings to films and series. 
+A simple web-application which gives the user the ability to give raitings to films. 
 These raitings are tracked to give the user a recap of which parts they enjoyed and which they didn't. 
 These statistics can also be shared with other users.
 
@@ -36,7 +36,7 @@ Simple three-layer architecture splitting the application into Controllers, Serv
 DONE!
 
 ### Week 6
-**Feature 1:** Movie and Series CRUD implementation
+**Feature 1:** Movie CRUD implementation
 
 **Feature 2:** Early database connection
 
@@ -46,40 +46,40 @@ DONE!
 ### Week 8
 **Feature 1:**  Login page, User profile Implementation.  
 
-**Feature 2:** Frontend showcasing movie and series implementation.
+**Feature 2:** Frontend showcasing movie implementation.
 
 ### Week 9
-**Feature 1:** Frontend Movies and Series CRUD implementation.
+**Feature 1:** Frontend Movie CRUD implementation.
 
 **Feature 2:** Rating system implementation (both frontend and backend)
 
 ### Week 10
-**Feature 1:** [...]
+**Feature 1:** Seperate the movies into Watchlist and Seen.
 
-**Feature 2:** [...]
+**Feature 2:** Adding friends early implementation
 
 ### Week 11
-**Feature 1:** [...]
+**Feature 1:** Complete friends implementation
 
-**Feature 2:** [...]
+**Feature 2:** Seeing friends' ratings.
 
 ### Week 12
-**Feature 1:** [...]
+**Feature 1:** Implementing genres
 
-**Feature 2:** [...]
+**Feature 2:** Sorting System for showcasing movies. 
 
 ### Week 13
-**Feature 1:** [...]
+**Feature 1:** Adding comments to ratings
 
-**Feature 2:** [...]
+**Feature 2:** Reusing movies, instead of creating new ones every time.
 
 ### Week 14
 *Easter vacation - nothing planned.*
 
 ### Week 15
-**Feature 1:** [...]
+**Feature 1:** Tag system implementation
 
-**Feature 2:** [...]
+**Feature 2:** UI Overhaul
 
 ### Week 16
 **Feature 1:** [...]
