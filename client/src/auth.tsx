@@ -3,11 +3,11 @@ import { authClient } from "./baseUrl";
 
 import { useAtom } from "jotai";
 import { tokenAtom, userInfoAtom } from "./Token.tsx";
-import type {LoginDTO, User} from "./generated-ts-client.ts";
+import type {LoginDto, User} from "./generated-ts-client.ts";
 
 type AuthHook = {
     user: User | null;
-    login: (request: LoginDTO) => Promise<void>;
+    login: (request: LoginDto) => Promise<void>;
     logout: () => void;
 };
 
@@ -16,7 +16,7 @@ export const useAuth = () => {
     const [user, setUser] = useAtom(userInfoAtom);
     const navigate = useNavigate();
 
-    const login = async (request: LoginDTO) => {
+    const login = async (request: LoginDto) => {
         const response = await authClient.login(request);
 
         setJwt(response.token!);
