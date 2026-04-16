@@ -11,6 +11,15 @@ COPY --from=build /app/dist /usr/share/nginx/html
 RUN echo $'\
 server { \n\
     listen 8080; \n\
+    location /api/ { \n\
+        proxy_pass http://5.189.151.230:8080/api/; \n\
+    } \n\
+    location /Movie/ { \n\
+        proxy_pass http://5.189.151.230:8080/Movie/; \n\
+    } \n\
+    location /Storage/ { \n\
+        proxy_pass http://5.189.151.230:8080/Storage/; \n\
+    } \n\
     location / { \n\
         root /usr/share/nginx/html; \n\
         index index.html index.htm; \n\
