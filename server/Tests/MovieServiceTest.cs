@@ -742,17 +742,23 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
 
         // Act - Set to true
         await movieService.AddMovieToSeen(movieId, userId, true);
+        dbContext.ChangeTracker.Clear(); // Clear the EF cache
         var firstCheck = await dbContext.UsersMovies
+            .AsNoTracking() // Don't track this query
             .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
         
         // Act - Set to false
         await movieService.AddMovieToSeen(movieId, userId, false);
+        dbContext.ChangeTracker.Clear(); // Clear the EF cache
         var secondCheck = await dbContext.UsersMovies
+            .AsNoTracking() // Don't track this query
             .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
         
         // Act - Set to true again
         await movieService.AddMovieToSeen(movieId, userId, true);
+        dbContext.ChangeTracker.Clear(); // Clear the EF cache
         var thirdCheck = await dbContext.UsersMovies
+            .AsNoTracking() // Don't track this query
             .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
 
         // Assert
@@ -760,6 +766,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         Assert.False(secondCheck?.Seen);
         Assert.True(thirdCheck?.Seen);
     }
+
 
     // ══════════════════════════════════════════════════════════════════════════
     // GetMoviesByUser with MovieWithSeenDto Tests
