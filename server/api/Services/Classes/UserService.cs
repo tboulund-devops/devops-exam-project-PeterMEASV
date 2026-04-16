@@ -48,27 +48,20 @@ public class UserService(
 
     public async Task<List<User>> GetAllFriendsForUser(string userId)
     {
-        try
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
         {
-            User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User not found");
-            }
-        }
-        catch (Exception)
-        {
-            throw new KeyNotFoundException("Failed to get user");
+            throw new KeyNotFoundException("User not found");
         }
         
         // Get friends where user is the initiator (userId column)
-        List<String> friendIdsAsInitiator = await context.UsersUsers
+        var friendIdsAsInitiator = await context.UsersUsers
             .Where(uu => uu.UserId == userId)
             .Select(uu => uu.FriendId)
             .ToListAsync();
         
         // Get friends where user is the recipient (friendId column)
-        List<String> friendIdsAsRecipient = await context.UsersUsers
+        var friendIdsAsRecipient = await context.UsersUsers
             .Where(uu => uu.FriendId == userId)
             .Select(uu => uu.UserId)
             .ToListAsync();
@@ -78,33 +71,19 @@ public class UserService(
         
         return await context.Users.Where(u => allFriendIds.Contains(u.Id)).ToListAsync();
     }
-
+    
     public async Task AddFriendForUser(string userId, string friendId)
     {
-        try
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
         {
-            User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User not found");
-            }
-        }
-        catch (Exception)
-        {
-            throw new KeyNotFoundException("Failed to get user");
+            throw new KeyNotFoundException("User not found");
         }
         
-        try
+        var friend = await context.Users.FirstOrDefaultAsync(f => f.Id == friendId);
+        if (friend == null)
         {
-            User? friend = await context.Users.FirstOrDefaultAsync(f => f.Id == friendId);
-            if (friend == null)
-            {
-                throw new KeyNotFoundException("Friend user not found");
-            }
-        }
-        catch (Exception)
-        {
-            throw new KeyNotFoundException("Failed to get Friend user");
+            throw new KeyNotFoundException("Friend user not found");
         }
         
         // Check if friendship already exists in either direction
@@ -122,33 +101,19 @@ public class UserService(
         await context.UsersUsers.AddAsync(new UsersUser { UserId = friendId, FriendId = userId });
         await context.SaveChangesAsync();
     }
-
+    
     public async Task RemoveFriendForUser(string userId, string friendId)
     {
-        try
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
         {
-            User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User not found");
-            }
-        }
-        catch (Exception)
-        {
-            throw new KeyNotFoundException("Failed to get user");
+            throw new KeyNotFoundException("User not found");
         }
         
-        try
+        var friend = await context.Users.FirstOrDefaultAsync(f => f.Id == friendId);
+        if (friend == null)
         {
-            User? friend = await context.Users.FirstOrDefaultAsync(f => f.Id == friendId);
-            if (friend == null)
-            {
-                throw new KeyNotFoundException("Friend user not found");
-            }
-        }
-        catch (Exception)
-        {
-            throw new KeyNotFoundException("Failed to get Friend user");
+            throw new KeyNotFoundException("Friend user not found");
         }
         
         // Remove friendship in both directions
