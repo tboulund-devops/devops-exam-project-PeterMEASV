@@ -37,3 +37,16 @@ export function forceLogout() {
     store.set(tokenAtom, null);
     store.set(userInfoAtom, null);
 }
+
+/**
+ * Extracts the user ID (sub claim) from a JWT token.
+ */
+export function getUserIdFromToken(token: string | null): string | null {
+    if (!token) return null;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        return payload.sub ?? null;
+    } catch {
+        return null;
+    }
+}

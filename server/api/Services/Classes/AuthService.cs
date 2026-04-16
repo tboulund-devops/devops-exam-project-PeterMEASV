@@ -51,10 +51,7 @@ public class AuthService(
             return null;
         }
 
-        return Queryable.SingleOrDefault(
-            context.Users.AsNoTracking(),
-            user => user.Id == userId
-        );
+        return context.Users.AsNoTracking().SingleOrDefault(user => user.Id == userId);
     }
     
 }

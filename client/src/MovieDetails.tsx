@@ -3,15 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useAtomValue } from "jotai";
 import { movieClient } from "./baseUrl.ts";
 import type { Movie } from "./generated-ts-client.ts";
-import { tokenAtom, userInfoAtom } from "./Token.tsx";
-
-function getUserIdFromToken(token: string | null): string | null {
-    if (!token) return null;
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-        return payload.sub ?? null;
-    } catch { return null; }
-}
+import { tokenAtom, userInfoAtom, getUserIdFromToken } from "./Token.tsx";
 
 function MovieDetails() {
     const location = useLocation();
