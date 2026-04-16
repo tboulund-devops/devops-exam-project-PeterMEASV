@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { useNavigate } from "react-router";
-import { finalUrl } from "./baseUrl.ts";
+import { useNavigate, useLocation } from "react-router";
+import { finalUrl, movieClient } from "./baseUrl.ts";
 import type { Movie } from "./generated-ts-client.ts";
 import { TOKEN_KEY, tokenAtom, tokenStorage, userInfoAtom } from "./Token.tsx";
 
@@ -15,7 +15,10 @@ function getUserIdFromToken(token: string | null): string | null {
     }
 }
 
-// ── Create Movie Modal ────────────────────────────────────────────────────────
+// Extended Movie type with seen status
+type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null };
+
+// ... existing code for CreateMovieModal ...
 
 type CreateMovieModalProps = {
     onClose: () => void;
@@ -145,7 +148,6 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
                         style={inputStyle}
                     />
 
-
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                         <label htmlFor="poster-upload" style={{ fontSize: "0.85rem", color: "#aaa" }}>Poster (optional)</label>
                         <input id="poster-upload" ref={inputRef} type="file" accept="image/*" onChange={handlePhotoChange} />
@@ -168,69 +170,248 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
     );
 }
 
+// ── Movie Card Component ──────────────────────────────────────────────────────
+
+type MovieCardProps = {
+    movie: MovieWithSeen;
+    onClick: () => void;
+    showSeenBadge?: boolean;
+};
+
+function MovieCard({ movie, onClick, showSeenBadge }: MovieCardProps) {
+    return (
+        <div
+            onClick={onClick}
+            style={{
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                cursor: "pointer",
+                transition: "transform 0.2s ease",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+        >
+            {movie.photo
+                ? <img 
+                    src={movie.photo} 
+                    alt={movie.title} 
+                    style={{ 
+                        width: "100%", 
+                        aspectRatio: "2/3", 
+                        objectFit: "cover", 
+                        borderRadius: "6px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    }} 
+                  />
+                : <div style={{ 
+                    width: "100%", 
+                    aspectRatio: "2/3", 
+                    background: "#2a2a2a", 
+                    borderRadius: "6px", 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center", 
+                    color: "#666" 
+                  }}>
+                    No poster
+                  </div>
+            }
+            {showSeenBadge && (
+                <div style={{
+                    position: "absolute",
+                    top: "8px",
+                    right: "8px",
+                    background: "#4caf50",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    fontSize: "18px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                }}>
+                    ✓
+                </div>
+            )}
+            <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{movie.title}</span>
+            <span style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</span>
+        </div>
+    );
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────────────────
+
+type TabType = "watchlist" | "seen";
 
 function Dashboard() {
     const token = useAtomValue(tokenAtom);
     const userId = useAtomValue(userInfoAtom)?.id ?? getUserIdFromToken(token);
-    const [movies, setMovies] = useState<Movie[]>([]);
+    const [movies, setMovies] = useState<MovieWithSeen[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const location = useLocation();
     const navigate = useNavigate();
+    
+    // Get tab from location state or default to watchlist
+    const [activeTab, setActiveTab] = useState<TabType>(
+        (location.state?.returnTab as TabType) || "watchlist"
+    );
 
-    useEffect(() => {
+    const fetchMovies = async () => {
         if (!userId) {
             setLoading(false);
             return;
         }
-        const token = tokenStorage.getItem(TOKEN_KEY, null);
-        fetch(`${finalUrl}/Movie/GetMoviesByUser?userId=${encodeURIComponent(userId)}`, {
-            headers: {
-                Accept: "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-        })
-            .then(r => r.json())
-            .then(setMovies)
-            .catch(() => setError("Could not load movies."))
-            .finally(() => setLoading(false));
+        
+        setLoading(true);
+        try {
+            const moviesData = await movieClient.getMoviesByUser(userId);
+            setMovies(moviesData as MovieWithSeen[]);
+        } catch {
+            setError("Could not load movies.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMovies();
     }, [userId]);
 
     const handleCreated = (movie: Movie) => {
-        setMovies(prev => [...prev, movie]);
+        setMovies(prev => [...prev, { ...movie, seen: false }]);
         setModalOpen(false);
     };
 
-    return (
-        <>
-            {loading && <p>Loading...</p>}
-            {!loading && error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && movies.length === 0 && <p>No movies in your collection yet.</p>}
-            {!loading && !error && movies.length > 0 && (
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: "16px",
-                    padding: "16px",
-                }}>
-                    {movies.map(movie => (
-                        <div
-                            key={movie.id}
-                            onClick={() => navigate(`/movie/${movie.id}`, { state: { movie } })}
-                            style={{ display: "flex", flexDirection: "column", gap: "8px", cursor: "pointer" }}
-                        >
-                            {movie.photo
-                                ? <img src={movie.photo} alt={movie.title} style={{ width: "100%", aspectRatio: "2/3", objectFit: "cover", borderRadius: "6px" }} />
-                                : <div style={{ width: "100%", aspectRatio: "2/3", background: "#2a2a2a", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>No poster</div>
-                            }
-                            <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{movie.title}</span>
-                            <span style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
+    const seenMovies = movies.filter(m => m.seen === true);
+    const watchlistMovies = movies.filter(m => m.seen !== true);
 
+    return (
+        <div style={{ minHeight: "100vh", background: "#111", color: "#fff" }}>
+            {/* Header with tabs */}
+            <div style={{
+                position: "sticky",
+                top: 0,
+                background: "#1a1a1a",
+                borderBottom: "1px solid #333",
+                padding: "16px 24px",
+                zIndex: 10,
+            }}>
+                <div style={{
+                    display: "flex",
+                    gap: "24px",
+                    alignItems: "center",
+                }}>
+                    <h1 style={{ margin: 0, fontSize: "1.5rem" }}>My Collection</h1>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                            onClick={() => setActiveTab("watchlist")}
+                            style={{
+                                ...tabButtonStyle,
+                                background: activeTab === "watchlist" ? "#e50914" : "transparent",
+                                color: activeTab === "watchlist" ? "#fff" : "#aaa",
+                            }}
+                        >
+                            Watchlist ({watchlistMovies.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("seen")}
+                            style={{
+                                ...tabButtonStyle,
+                                background: activeTab === "seen" ? "#e50914" : "transparent",
+                                color: activeTab === "seen" ? "#fff" : "#aaa",
+                            }}
+                        >
+                            Watched ({seenMovies.length})
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: "24px" }}>
+                {loading && <p>Loading...</p>}
+                {!loading && error && <p style={{ color: "red" }}>{error}</p>}
+                
+                {!loading && !error && (
+                    <>
+                        {/* Watchlist Tab */}
+                        {activeTab === "watchlist" && (
+                            <>
+                                {watchlistMovies.length === 0 ? (
+                                    <div style={{
+                                        textAlign: "center",
+                                        padding: "80px 20px",
+                                        color: "#666",
+                                    }}>
+                                        <div style={{ fontSize: "4rem", marginBottom: "16px" }}>🎬</div>
+                                        <h2 style={{ margin: "0 0 8px 0", color: "#aaa" }}>Your watchlist is empty</h2>
+                                        <p>Add movies you want to watch</p>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                                        gap: "20px",
+                                    }}>
+                                        {watchlistMovies.map(movie => (
+                                            <MovieCard
+                                                key={movie.id}
+                                                movie={movie}
+                                                onClick={() => navigate(`/movie/${movie.id}`, { 
+                                                    state: { movie, returnTab: "watchlist" } 
+                                                })}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {/* Seen Tab */}
+                        {activeTab === "seen" && (
+                            <>
+                                {seenMovies.length === 0 ? (
+                                    <div style={{
+                                        textAlign: "center",
+                                        padding: "80px 20px",
+                                        color: "#666",
+                                    }}>
+                                        <div style={{ fontSize: "4rem", marginBottom: "16px" }}>✓</div>
+                                        <h2 style={{ margin: "0 0 8px 0", color: "#aaa" }}>No movies watched yet</h2>
+                                        <p>Movies you mark as watched will appear here</p>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                                        gap: "20px",
+                                    }}>
+                                        {seenMovies.map(movie => (
+                                            <MovieCard
+                                                key={movie.id}
+                                                movie={movie}
+                                                onClick={() => navigate(`/movie/${movie.id}`, { 
+                                                    state: { movie, returnTab: "seen" } 
+                                                })}
+                                                showSeenBadge
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {/* Floating Add Button */}
             <button
                 onClick={() => setModalOpen(true)}
                 style={{
@@ -241,7 +422,10 @@ function Dashboard() {
                     border: "none", cursor: "pointer",
                     boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
                     display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "transform 0.2s ease",
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.1)"}
+                onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
                 aria-label="Add movie"
             >
                 +
@@ -253,7 +437,7 @@ function Dashboard() {
                     onCreated={handleCreated}
                 />
             )}
-        </>
+        </div>
     );
 }
 
@@ -287,6 +471,16 @@ const secondaryButtonStyle: React.CSSProperties = {
     color: "#fff",
     border: "none",
     cursor: "pointer",
+};
+
+const tabButtonStyle: React.CSSProperties = {
+    padding: "8px 20px",
+    borderRadius: "6px",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "0.95rem",
+    transition: "all 0.2s ease",
 };
 
 export default Dashboard;

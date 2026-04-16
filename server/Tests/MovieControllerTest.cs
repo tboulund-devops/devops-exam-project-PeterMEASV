@@ -55,11 +55,11 @@ public class MovieControllerTest
     {
         // Arrange
         var userId = "user1";
-        var movies = new List<Movie>
+        var moviesWithSeen = new List<MovieWithSeenDto>
         {
-            new Movie { Id = "1", Title = "Movie 1", Year = 2020, Starring = "Actor 1", Description = "Desc 1" }
+            new MovieWithSeenDto("1", "Movie 1", 2020, "Desc 1", "Actor 1", null, false, null)
         };
-        _mockService.Setup(s => s.GetMoviesByUser(userId)).ReturnsAsync(movies);
+        _mockService.Setup(s => s.GetMoviesByUser(userId)).ReturnsAsync(moviesWithSeen);
 
         // Act
         var result = await _controller.GetMoviesByUser(userId);
@@ -67,6 +67,7 @@ public class MovieControllerTest
         // Assert
         Assert.IsType<OkObjectResult>(result.Result);
     }
+
 
     [Fact]
     public async Task GetMoviesByUser_ShouldReturnBadRequest_WhenServiceThrows()
@@ -266,9 +267,9 @@ public class MovieControllerTest
     {
         // Arrange
         var userId = "user1";
-        var movieId = "nonexistent-movie";
+        var movieId = "movie1";
         _mockService.Setup(s => s.GetMovieRatingByUser(userId, movieId))
-            .ThrowsAsync(new KeyNotFoundException("User movie not found"));
+            .ThrowsAsync(new Exception("Error"));
 
         // Act
         var result = await _controller.GetMovieRatingByUser(userId, movieId);
@@ -277,5 +278,140 @@ public class MovieControllerTest
         var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
         Assert.Equal("Could not fetch movie rating", badRequest.Value);
     }
-}
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // AddMovieToSeen Controller Tests
+    // ══════════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task AddMovieToSeen_ShouldReturnOk_WhenServiceSucceeds()
+    {
+        // Arrange
+        var movieId = "movie1";
+        var userId = "user1";
+        var seen = true;
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        _mockService.Setup(s => s.AddMovieToSeen(movieId, userId, seen))
+            .ReturnsAsync(movie);
+
+        // Act
+        var result = await _controller.AddMovieToSeen(movieId, userId, seen);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returnedMovie = Assert.IsType<Movie>(okResult.Value);
+        Assert.Equal(movieId, returnedMovie.Id);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_ShouldReturnOk_WhenMarkingAsUnseen()
+    {
+        // Arrange
+        var movieId = "movie1";
+        var userId = "user1";
+        var seen = false;
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        _mockService.Setup(s => s.AddMovieToSeen(movieId, userId, seen))
+            .ReturnsAsync(movie);
+
+        // Act
+        var result = await _controller.AddMovieToSeen(movieId, userId, seen);
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_ShouldReturnBadRequest_WhenServiceThrowsKeyNotFoundException()
+    {
+        // Arrange
+        var movieId = "nonexistent-movie";
+        var userId = "user1";
+        var seen = true;
+        
+        _mockService.Setup(s => s.AddMovieToSeen(movieId, userId, seen))
+            .ThrowsAsync(new KeyNotFoundException("Movie not found"));
+
+        // Act
+        var result = await _controller.AddMovieToSeen(movieId, userId, seen);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("Could not add movie to seen", badRequest.Value);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_ShouldReturnBadRequest_WhenUserNotFound()
+    {
+        // Arrange
+        var movieId = "movie1";
+        var userId = "nonexistent-user";
+        var seen = true;
+        
+        _mockService.Setup(s => s.AddMovieToSeen(movieId, userId, seen))
+            .ThrowsAsync(new KeyNotFoundException("User not found"));
+
+        // Act
+        var result = await _controller.AddMovieToSeen(movieId, userId, seen);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("Could not add movie to seen", badRequest.Value);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_ShouldReturnBadRequest_WhenUserMovieNotFound()
+    {
+        // Arrange
+        var movieId = "movie1";
+        var userId = "user1";
+        var seen = true;
+        
+        _mockService.Setup(s => s.AddMovieToSeen(movieId, userId, seen))
+            .ThrowsAsync(new KeyNotFoundException("User movie not found"));
+
+        // Act
+        var result = await _controller.AddMovieToSeen(movieId, userId, seen);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("Could not add movie to seen", badRequest.Value);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // GetMoviesByUser with MovieWithSeenDto Tests
+    // ══════════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task GetMoviesByUser_ShouldReturnMoviesWithSeenDto()
+    {
+        // Arrange
+        var userId = "user1";
+        var moviesWithSeen = new List<MovieWithSeenDto>
+        {
+            new MovieWithSeenDto("1", "Seen Movie", 2020, "Desc 1", "Actor 1", null, true, 8),
+            new MovieWithSeenDto("2", "Unseen Movie", 2021, "Desc 2", "Actor 2", null, false, null)
+        };
+        
+        _mockService.Setup(s => s.GetMoviesByUser(userId))
+            .ReturnsAsync(moviesWithSeen);
+
+        // Act
+        var result = await _controller.GetMoviesByUser(userId);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returnedMovies = Assert.IsAssignableFrom<List<MovieWithSeenDto>>(okResult.Value);
+        Assert.Equal(2, returnedMovies.Count);
+        
+        var seenMovie = returnedMovies.First(m => m.Id == "1");
+        Assert.True(seenMovie.Seen);
+        Assert.Equal(8, seenMovie.Rating);
+        
+        var unseenMovie = returnedMovies.First(m => m.Id == "2");
+        Assert.False(unseenMovie.Seen);
+        Assert.Null(unseenMovie.Rating);
+    }
+}

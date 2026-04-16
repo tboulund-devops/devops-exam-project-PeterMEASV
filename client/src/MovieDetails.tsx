@@ -13,13 +13,15 @@ function getUserIdFromToken(token: string | null): string | null {
     } catch { return null; }
 }
 
+type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null };
+
 function MovieDetails() {
     const location = useLocation();
     const navigate = useNavigate();
     const token = useAtomValue(tokenAtom);
     const userId = useAtomValue(userInfoAtom)?.id ?? getUserIdFromToken(token);
 
-    const [movie, setMovie] = useState<Movie | null>(location.state?.movie ?? null);
+    const [movie, setMovie] = useState<MovieWithSeen | null>(location.state?.movie ?? null);
     const [title, setTitle] = useState("");
     const [year, setYear] = useState("");
     const [description, setDescription] = useState("");
@@ -31,6 +33,11 @@ function MovieDetails() {
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [movieRating, setMovieRating] = useState<number | null>(null);
+    const [isSeen, setIsSeen] = useState<boolean>(false);
+    const [updatingSeen, setUpdatingSeen] = useState(false);
+    
+    // Store the return tab from navigation state
+    const returnTab = location.state?.returnTab || "watchlist";
 
     useEffect(() => {
         if (!movie) return;
@@ -40,19 +47,26 @@ function MovieDetails() {
         setStarring(movie.starring ?? "");
         setPhotoPreview(movie.photo ?? null);
         setRating("");
+        setIsSeen(movie.seen ?? false);
+        
         movieClient.getMovieRatingByUser(userId ?? undefined, movie.id).then(rating => {
             setMovieRating(rating);
-            setRating(String(rating));
+            setRating(String(rating ?? ""));
         }).catch(() => {
             setMovieRating(null);
         });
-    }, [movie]);
+    }, [movie, userId]);
 
     if (!movie) {
         return (
             <div style={{ padding: "32px", color: "#fff" }}>
                 <p>Movie not found.</p>
-                <button onClick={() => navigate("/dashboard")} style={secondaryButtonStyle}>← Back</button>
+                <button 
+                    onClick={() => navigate("/dashboard", { state: { returnTab } })} 
+                    style={secondaryButtonStyle}
+                >
+                    ← Back
+                </button>
             </div>
         );
     }
@@ -75,7 +89,7 @@ function MovieDetails() {
                 description: description.trim() || undefined,
                 starring: starring.trim() || undefined,
             });
-            setMovie(updated);
+            setMovie({ ...updated, seen: isSeen, rating: movieRating });
 
             if (rating && userId && movie.id) {
                 await movieClient.updateMovieRating(userId ?? undefined, movie.id, parseInt(rating));
@@ -90,6 +104,29 @@ function MovieDetails() {
         }
     };
 
+    const handleSeenToggle = async () => {
+        if (!userId || !movie?.id) {
+            setError("You must be logged in to update seen status.");
+            return;
+        }
+        setUpdatingSeen(true);
+        setError(null);
+        try {
+            const newSeenStatus = !isSeen;
+            await movieClient.addMovieToSeen(movie.id, userId ?? undefined, newSeenStatus);
+            setIsSeen(newSeenStatus);
+            setMovie({ ...movie, seen: newSeenStatus });
+            
+            // Show success message
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+        } catch {
+            setError("Could not update seen status. Please try again.");
+        } finally {
+            setUpdatingSeen(false);
+        }
+    };
+
     const removeMovieFromUser = async () => {
         if (!userId || !movie?.id) {
             setError("You must be logged in to remove movies from your collection.");
@@ -99,15 +136,19 @@ function MovieDetails() {
         if (!confirmed) return;
         try {
             await movieClient.removeMovieFromUser(userId ?? undefined, movie.id);
-            navigate("/dashboard");
+            navigate("/dashboard", { state: { returnTab } });
         } catch {
             setError("Could not remove movie. Please try again.");
         }
     };
 
+    const handleBackClick = () => {
+        navigate("/dashboard", { state: { returnTab } });
+    };
+
     return (
         <div style={{ minHeight: "100vh", background: "#111", color: "#fff", padding: "32px" }}>
-            <button onClick={() => navigate("/dashboard")} style={secondaryButtonStyle}>← Back</button>
+            <button onClick={handleBackClick} style={secondaryButtonStyle}>← Back</button>
 
             <div style={{
                 display: "flex", gap: "40px", marginTop: "28px",
@@ -121,6 +162,29 @@ function MovieDetails() {
                     }
                     <button onClick={() => inputRef.current?.click()} style={secondaryButtonStyle}>Change poster</button>
                     <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
+
+                    {/* Seen Toggle Button */}
+                    <button 
+                        onClick={handleSeenToggle} 
+                        disabled={updatingSeen}
+                        style={{
+                            ...secondaryButtonStyle,
+                            background: isSeen ? "#4caf50" : "#2a2a2a",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "8px",
+                            fontWeight: isSeen ? "bold" : "normal",
+                        }}
+                    >
+                        {updatingSeen ? "Updating..." : (
+                            <>
+                                <span>{isSeen ? "✓" : "○"}</span>
+                                <span>{isSeen ? "Watched" : "Mark as watched"}</span>
+                            </>
+                        )}
+                    </button>
 
                     <button onClick={removeMovieFromUser} style={{ ...secondaryButtonStyle, color: "#e50914" }}>Remove from collection</button>
                 </div>

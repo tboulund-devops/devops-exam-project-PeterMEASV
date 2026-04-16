@@ -131,7 +131,7 @@ export class MovieClient {
         return Promise.resolve<Movie[]>(null as any);
     }
 
-    getMoviesByUser(userId: string | undefined): Promise<Movie[]> {
+    getMoviesByUser(userId: string | undefined): Promise<MovieWithSeenDto[]> {
         let url_ = this.baseUrl + "/Movie/GetMoviesByUser?";
         if (userId === null)
             throw new globalThis.Error("The parameter 'userId' cannot be null.");
@@ -151,13 +151,13 @@ export class MovieClient {
         });
     }
 
-    protected processGetMoviesByUser(response: Response): Promise<Movie[]> {
+    protected processGetMoviesByUser(response: Response): Promise<MovieWithSeenDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Movie[];
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as MovieWithSeenDto[];
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -165,7 +165,7 @@ export class MovieClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Movie[]>(null as any);
+        return Promise.resolve<MovieWithSeenDto[]>(null as any);
     }
 
     removeMovieFromUser(userId: string | undefined, movieId: string | undefined): Promise<Movie[]> {
@@ -435,6 +435,51 @@ export class MovieClient {
         }
         return Promise.resolve<Movie>(null as any);
     }
+
+    addMovieToSeen(movieId: string | undefined, userId: string | undefined, seen: boolean | undefined): Promise<Movie> {
+        let url_ = this.baseUrl + "/Movie/AddMovieToSeen?";
+        if (movieId === null)
+            throw new globalThis.Error("The parameter 'movieId' cannot be null.");
+        else if (movieId !== undefined)
+            url_ += "movieId=" + encodeURIComponent("" + movieId) + "&";
+        if (userId === null)
+            throw new globalThis.Error("The parameter 'userId' cannot be null.");
+        else if (userId !== undefined)
+            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
+        if (seen === null)
+            throw new globalThis.Error("The parameter 'seen' cannot be null.");
+        else if (seen !== undefined)
+            url_ += "seen=" + encodeURIComponent("" + seen) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddMovieToSeen(_response);
+        });
+    }
+
+    protected processAddMovieToSeen(response: Response): Promise<Movie> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Movie;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Movie>(null as any);
+    }
 }
 
 export class UserClient {
@@ -640,6 +685,17 @@ export interface Movie {
     description?: string | undefined;
     starring?: string | undefined;
     photo?: string | undefined;
+}
+
+export interface MovieWithSeenDto {
+    id?: string;
+    title?: string;
+    year?: number;
+    description?: string | undefined;
+    starring?: string | undefined;
+    photo?: string | undefined;
+    seen?: boolean | undefined;
+    rating?: number | undefined;
 }
 
 export interface CreateUserDto {

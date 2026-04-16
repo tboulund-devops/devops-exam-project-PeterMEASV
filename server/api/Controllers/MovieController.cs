@@ -26,7 +26,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpGet]
     [Route(nameof(GetMoviesByUser))]
-    public async Task<ActionResult<List<Movie>>> GetMoviesByUser([FromQuery] string userId)
+    public async Task<ActionResult<List<MovieWithSeenDto>>> GetMoviesByUser([FromQuery] string userId)
     {
         try
         {
@@ -124,6 +124,20 @@ public class MovieController(IMovieService movieService) : ControllerBase
         catch (Exception)
         {
             return BadRequest("Could not create movie");
+        }
+    }
+    
+    [HttpPost]
+    [Route(nameof(AddMovieToSeen))]
+    public async Task<ActionResult<Movie>> AddMovieToSeen([FromQuery] string movieId, [FromQuery] string userId, [FromQuery] Boolean seen)
+    {
+        try
+        {
+            return Ok(await movieService.AddMovieToSeen(movieId, userId, seen));
+        }
+        catch (Exception)
+        {
+            return BadRequest("Could not add movie to seen");
         }
     }
 }

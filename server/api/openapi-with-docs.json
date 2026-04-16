@@ -105,7 +105,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Movie"
+                    "$ref": "#/components/schemas/MovieWithSeenDto"
                   }
                 }
               }
@@ -386,6 +386,52 @@
         }
       }
     },
+    "/Movie/AddMovieToSeen": {
+      "post": {
+        "tags": [
+          "Movie"
+        ],
+        "operationId": "Movie_AddMovieToSeen",
+        "parameters": [
+          {
+            "name": "movieId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "seen",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Movie"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/User/create": {
       "post": {
         "tags": [
@@ -600,6 +646,43 @@
           },
           "photo": {
             "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "MovieWithSeenDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "starring": {
+            "type": "string",
+            "nullable": true
+          },
+          "photo": {
+            "type": "string",
+            "nullable": true
+          },
+          "seen": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         }

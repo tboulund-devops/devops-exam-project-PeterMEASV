@@ -582,18 +582,308 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
     {
         // Reset database before test
         await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = "1", Title = "Movie 1", Year = 2020, Starring = "Actor 1", Description = "Desc 1" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        await dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.GetMovieRatingByUser(userId, "2"));
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // AddMovieToSeen Tests
+    // ══════════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task AddMovieToSeen_ShouldSetSeenToTrue_WhenValidInput()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
         
         // Arrange
         var userId = "user1";
-        var movieId = "fakeMovie";
+        var movieId = "movie1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        var userMovie = new UsersMovie { UserId = userId, MovieId = movieId, Seen = false };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(userMovie);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.AddMovieToSeen(movieId, userId, true);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(movieId, result.Id);
+        
+        var updatedUserMovie = await dbContext.UsersMovies
+            .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        Assert.NotNull(updatedUserMovie);
+        Assert.True(updatedUserMovie.Seen);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_ShouldSetSeenToFalse_WhenMarkingAsUnseen()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        var userMovie = new UsersMovie { UserId = userId, MovieId = movieId, Seen = true };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(userMovie);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.AddMovieToSeen(movieId, userId, false);
+
+        // Assert
+        Assert.NotNull(result);
+        var updatedUserMovie = await dbContext.UsersMovies
+            .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        Assert.NotNull(updatedUserMovie);
+        Assert.False(updatedUserMovie.Seen);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_WithInvalidUserId_ShouldThrowKeyNotFoundException()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var invalidUserId = "nonexistent-user";
+        var movieId = "movie1";
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        dbContext.Movies.Add(movie);
+        await dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => 
+            movieService.AddMovieToSeen(movieId, invalidUserId, true));
+        Assert.Equal("User not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_WithInvalidMovieId_ShouldThrowKeyNotFoundException()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var invalidMovieId = "nonexistent-movie";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.GetMovieRatingByUser(userId, movieId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => 
+            movieService.AddMovieToSeen(invalidMovieId, userId, true));
+        Assert.Equal("Movie not found", exception.Message);
+    }
+
+    [Fact]
+    public async Task AddMovieToSeen_WithNonExistentUserMovie_ShouldThrowKeyNotFoundException()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        await dbContext.SaveChangesAsync();
+        // Note: Not adding UsersMovie relationship
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => 
+            movieService.AddMovieToSeen(movieId, userId, true));
         Assert.Equal("User movie not found", exception.Message);
     }
 
+    [Fact]
+    public async Task AddMovieToSeen_ShouldToggleSeenStatus_WhenCalledMultipleTimes()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+        var userMovie = new UsersMovie { UserId = userId, MovieId = movieId, Seen = false };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(userMovie);
+        await dbContext.SaveChangesAsync();
+
+        // Act - Set to true
+        await movieService.AddMovieToSeen(movieId, userId, true);
+        var firstCheck = await dbContext.UsersMovies
+            .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        
+        // Act - Set to false
+        await movieService.AddMovieToSeen(movieId, userId, false);
+        var secondCheck = await dbContext.UsersMovies
+            .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        
+        // Act - Set to true again
+        await movieService.AddMovieToSeen(movieId, userId, true);
+        var thirdCheck = await dbContext.UsersMovies
+            .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+
+        // Assert
+        Assert.True(firstCheck?.Seen);
+        Assert.False(secondCheck?.Seen);
+        Assert.True(thirdCheck?.Seen);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // GetMoviesByUser with MovieWithSeenDto Tests
+    // ══════════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task GetMoviesByUser_ShouldReturnMoviesWithSeenStatus()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie1 = new Movie { Id = "1", Title = "Seen Movie", Year = 2020, Starring = "Actor 1", Description = "Desc 1" };
+        var movie2 = new Movie { Id = "2", Title = "Unseen Movie", Year = 2021, Starring = "Actor 2", Description = "Desc 2" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie1);
+        dbContext.Movies.Add(movie2);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = "1", Seen = true, Rating = 8 });
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = "2", Seen = false, Rating = null });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.GetMoviesByUser(userId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+        
+        var seenMovie = result.FirstOrDefault(m => m.Id == "1");
+        Assert.NotNull(seenMovie);
+        Assert.True(seenMovie.Seen);
+        Assert.Equal(8, seenMovie.Rating);
+        Assert.Equal("Seen Movie", seenMovie.Title);
+        
+        var unseenMovie = result.FirstOrDefault(m => m.Id == "2");
+        Assert.NotNull(unseenMovie);
+        Assert.False(unseenMovie.Seen);
+        Assert.Null(unseenMovie.Rating);
+        Assert.Equal("Unseen Movie", unseenMovie.Title);
+    }
+
+    [Fact]
+    public async Task GetMoviesByUser_ShouldReturnOnlySeenMovies_WhenFiltered()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie1 = new Movie { Id = "1", Title = "Movie 1", Year = 2020, Starring = "Actor 1", Description = "Desc 1" };
+        var movie2 = new Movie { Id = "2", Title = "Movie 2", Year = 2021, Starring = "Actor 2", Description = "Desc 2" };
+        var movie3 = new Movie { Id = "3", Title = "Movie 3", Year = 2022, Starring = "Actor 3", Description = "Desc 3" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.AddRange(movie1, movie2, movie3);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = "1", Seen = true });
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = "2", Seen = false });
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = "3", Seen = true });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var allMovies = await movieService.GetMoviesByUser(userId);
+        var seenMovies = allMovies.Where(m => m.Seen == true).ToList();
+
+        // Assert
+        Assert.Equal(3, allMovies.Count);
+        Assert.Equal(2, seenMovies.Count);
+        Assert.Contains(seenMovies, m => m.Id == "1");
+        Assert.Contains(seenMovies, m => m.Id == "3");
+        Assert.DoesNotContain(seenMovies, m => m.Id == "2");
+    }
+
+    [Fact]
+    public async Task GetMoviesByUser_ShouldReturnMoviesWithNullSeen_AsDefaultFalse()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = "1", Title = "Movie 1", Year = 2020, Starring = "Actor 1", Description = "Desc 1" };
+        
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = "1", Seen = null });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.GetMoviesByUser(userId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        var movieDto = result.First();
+        Assert.Null(movieDto.Seen); // Should preserve null value
+    }
+
+    [Fact]
+    public async Task CreateMovie_ShouldSetSeenToFalse_ByDefault()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        
+        // Arrange
+        var userId = "user1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+
+        var createMovieDto = new CreateMovieDto("New Movie", 2023, "A new movie", "Actor", null);
+
+        // Act
+        var createdMovie = await movieService.CreateMovie(createMovieDto, userId, 7);
+
+        // Assert
+        var userMovie = await dbContext.UsersMovies
+            .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == createdMovie.Id);
+        Assert.NotNull(userMovie);
+        Assert.False(userMovie.Seen);
+        Assert.Equal(7, userMovie.Rating);
+    }
 }
