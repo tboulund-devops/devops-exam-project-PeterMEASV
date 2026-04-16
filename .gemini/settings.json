@@ -1,3 +1,33 @@
 {
-  "model": "gemini-2.0-flash"
+  "mcpServers": {
+    "github": {
+      "headers": {
+        "Authorization": "hIgkX56cpD5LOpwN45ezFtBYWkRicAUnCOh7fuEHBfD6PoFIXiiRzAJ0Xx"
+      },
+      "url": "http://host.docker.internal:80/mcp/github"
+    },
+    "safeoutputs": {
+      "headers": {
+        "Authorization": "hIgkX56cpD5LOpwN45ezFtBYWkRicAUnCOh7fuEHBfD6PoFIXiiRzAJ0Xx"
+      },
+      "url": "http://host.docker.internal:80/mcp/safeoutputs"
+    }
+  },
+  "context": {
+    "includeDirectories": [
+      "/tmp/"
+    ]
+  },
+  "tools": {
+    "core": [
+      "glob",
+      "grep_search",
+      "list_directory",
+      "read_file",
+      "read_many_files",
+      "replace",
+      "run_shell_command",
+      "write_file"
+    ]
+  }
 }

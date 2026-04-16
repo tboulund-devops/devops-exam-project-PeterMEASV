@@ -1,19 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useNavigate } from "react-router";
-import { finalUrl } from "./baseUrl.ts";
+import { movieClient } from "./baseUrl.ts";
 import type { Movie } from "./generated-ts-client.ts";
-import { TOKEN_KEY, tokenAtom, tokenStorage, userInfoAtom } from "./Token.tsx";
-
-function getUserIdFromToken(token: string | null): string | null {
-    if (!token) return null;
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-        return payload.sub ?? null;
-    } catch {
-        return null;
-    }
-}
+import { TOKEN_KEY, tokenAtom, tokenStorage, userInfoAtom, getUserIdFromToken } from "./Token.tsx";
 
 // ── Create Movie Modal ────────────────────────────────────────────────────────
 
@@ -63,26 +53,15 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
                 return;
             }
 
-            const formData = new FormData();
-            formData.append("title", title.trim());
-            formData.append("year", year);
-            if (description.trim()) formData.append("description", description.trim());
-            if (starring.trim()) formData.append("starring", starring.trim());
-            if (photoFile) formData.append("photo", photoFile, photoFile.name);
-
-            let url = `${finalUrl}/Movie/CreateMovie?userID=${encodeURIComponent(userId)}`;
-            if (rating) {
-                url += `&rating=${encodeURIComponent(rating)}`;
-            }
-
-            const token = tokenStorage.getItem(TOKEN_KEY, null);
-            const response = await fetch(url, {
-                method: "POST",
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-                body: formData,
-            });
-            if (!response.ok) throw new Error("Failed");
-            const created: Movie = await response.json();
+            const created = await movieClient.createMovie(
+                userId,
+                rating ? parseInt(rating) : undefined,
+                title.trim(),
+                parseInt(year),
+                description.trim() || undefined,
+                starring.trim() || undefined,
+                photoFile ? { data: photoFile, fileName: photoFile.name } : undefined
+            );
             onCreated(created);
         } catch {
             setError("Could not create movie. Please try again.");
@@ -184,14 +163,7 @@ function Dashboard() {
             setLoading(false);
             return;
         }
-        const token = tokenStorage.getItem(TOKEN_KEY, null);
-        fetch(`${finalUrl}/Movie/GetMoviesByUser?userId=${encodeURIComponent(userId)}`, {
-            headers: {
-                Accept: "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-        })
-            .then(r => r.json())
+        movieClient.getMoviesByUser(userId)
             .then(setMovies)
             .catch(() => setError("Could not load movies."))
             .finally(() => setLoading(false));
