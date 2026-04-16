@@ -8,19 +8,51 @@ These statistics can also be shared with other users.
 ## Tech-stack
 
 ### Frontend
-Framework: React 19.1.1
-Language: TypeScript 5.8.3
+- Framework: React 19.1.1
+- Language: TypeScript 5.8.3
+- Build Tool: Vite
 
 ### Backend (.NET 9.0)
-Framework: ASP.NET Core Web API
-Language: C#
-Database: PostgreSQL
+- Framework: ASP.NET Core Web API
+- Language: C#
+- Database: PostgreSQL
+
+### Infrastructure & DevOps
+- **Reverse Proxy:** Nginx
+- **Deployment:** Fly.io
+- **CI/CD:** GitHub Actions
+- **Load Testing:** k6
+- **E2E Testing:** TestCafe
+- **AI Automation:** Agentic Workflows (Gemini CLI)
 
 ## Architecture
 
-Simple three-layer architecture splitting the application into Controllers, Service classes, and Entities.
+Simple three-layer architecture splitting the application into Controllers, Service classes, and Entities. Nginx is used as a reverse proxy to handle API requests and bypass mixed content issues during deployment.
 
+## Features
 
+- **Authentication:** Secure login and user profile management.
+- **Movie CRUD:** Full Create, Read, Update, and Delete functionality for movies.
+- **Rating System:** Ability for users to rate films and track their preferences.
+- **Statistics:** Recap and statistics of user ratings (sharable with others).
+
+## CI/CD & Automation
+
+This project utilizes automated workflows to ensure code quality and maintain documentation.
+
+### Agentic Workflows
+Powered by [Gemini CLI](https://geminicli.com/), the following automated processes run daily:
+- **Daily Documentation Updater:** Scans recent changes and automatically updates the project documentation.
+- **Daily Repo Status:** Generates a daily summary of repository activity, including PRs, issues, and code changes, posted as a GitHub issue.
+
+### Prerequisites for Automation
+To run the Agentic Workflows, the following GitHub Secret is required:
+- `GEMINI_API_KEY`: API key for Google Gemini, used by the Gemini CLI to power the agents.
+
+### Testing
+- **Unit & Integration Tests:** Automated tests for both Frontend and Backend.
+- **End-to-End (E2E) Testing:** TestCafe is used to simulate user interactions and verify core application flows.
+- **Load Testing:** k6 is used to verify system performance under load.
 
 ## Feature plan
 
@@ -52,6 +84,7 @@ DONE!
 **Feature 1:** Frontend Movie CRUD implementation.
 
 **Feature 2:** Rating system implementation (both frontend and backend)
+DONE!
 
 ### Week 10
 **Feature 1:** Seperate the movies into Watchlist and Seen.
