@@ -35,6 +35,7 @@ Simple three-layer architecture splitting the application into Controllers, Serv
 - **Movie CRUD:** Full Create, Read, Update, and Delete functionality for movies.
 - **Rating System:** Ability for users to rate films and track their preferences.
 - **Statistics:** Recap and statistics of user ratings (sharable with others).
+- **Friends System (WIP):** Early implementation of social features, including a friend sidebar and backend support for user connections.
 
 ## CI/CD & Automation
 
@@ -44,6 +45,7 @@ This project utilizes automated workflows to ensure code quality and maintain do
 Powered by [Gemini CLI](https://geminicli.com/), the following automated processes run daily:
 - **Daily Documentation Updater:** Scans recent changes and automatically updates the project documentation.
 - **Daily Repo Status:** Generates a daily summary of repository activity, including PRs, issues, and code changes, posted as a GitHub issue.
+- **Code Simplifier:** Analyzes recently modified code and creates pull requests with simplifications to improve clarity and maintainability.
 
 ### Prerequisites for Automation
 To run the Agentic Workflows, the following GitHub Secret is required:
@@ -90,6 +92,7 @@ DONE!
 **Feature 1:** Seperate the movies into Watchlist and Seen.
 
 **Feature 2:** Adding friends early implementation
+*IN PROGRESS - Basic UI and Backend support added.*
 
 ### Week 11
 **Feature 1:** Complete friends implementation
