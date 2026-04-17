@@ -115,7 +115,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpPost]
     [Route(nameof(CreateMovie))]
-    public async Task<ActionResult<Movie>> CreateMovie([FromForm] CreateMovieDto movie, [FromQuery] string userId, [FromQuery] int rating, [FromQuery] List<Genre> genres)
+    public async Task<ActionResult<Movie>> CreateMovie([FromForm] CreateMovieDto movie, [FromQuery] string userId, [FromQuery] int? rating = null, [FromQuery] List<Genre>? genres = null)
     {
         try
         {

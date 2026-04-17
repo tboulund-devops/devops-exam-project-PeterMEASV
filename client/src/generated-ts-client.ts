@@ -501,19 +501,15 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
-    createMovie(userId: string | undefined, rating: number | undefined, genres: Genre[] | undefined, title: string | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
+    createMovie(userId: string | undefined, rating: number | null | undefined, genres: Genre[] | null | undefined, title: string | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
         let url_ = this.baseUrl + "/Movie/CreateMovie?";
         if (userId === null)
             throw new globalThis.Error("The parameter 'userId' cannot be null.");
         else if (userId !== undefined)
             url_ += "userId=" + encodeURIComponent("" + userId) + "&";
-        if (rating === null)
-            throw new globalThis.Error("The parameter 'rating' cannot be null.");
-        else if (rating !== undefined)
+        if (rating !== undefined && rating !== null)
             url_ += "rating=" + encodeURIComponent("" + rating) + "&";
-        if (genres === null)
-            throw new globalThis.Error("The parameter 'genres' cannot be null.");
-        else if (genres !== undefined)
+        if (genres !== undefined && genres !== null)
             genres && genres.forEach((item, index) => {
                 for (const attr in item)
         			if (item.hasOwnProperty(attr)) {

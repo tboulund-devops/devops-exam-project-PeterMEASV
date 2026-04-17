@@ -420,7 +420,8 @@
             "in": "query",
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "nullable": true
             },
             "x-position": 2
           },
@@ -431,6 +432,7 @@
             "explode": true,
             "schema": {
               "type": "array",
+              "nullable": true,
               "items": {
                 "$ref": "#/components/schemas/Genre"
               }

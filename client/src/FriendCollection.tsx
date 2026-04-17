@@ -1,11 +1,11 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useAtomValue } from "jotai";
-import { movieClient, userClient } from "./baseUrl.ts";
-import type { Movie, User } from "./generated-ts-client.ts";
+import { genreClient, movieClient, userClient } from "./baseUrl.ts";
+import type { Genre, Movie, User } from "./generated-ts-client.ts";
 import { userInfoAtom } from "./Token.tsx";
 
-type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null };
+type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null; genres?: Genre[] };
 
 type TabType = "watchlist" | "seen";
 
@@ -22,6 +22,20 @@ function FriendCollection() {
     const [activeTab, setActiveTab] = useState<TabType>("watchlist");
     const [myMovieIds, setMyMovieIds] = useState<Set<string>>(new Set());
 
+    const [search, setSearch] = useState("");
+    const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "rating-asc" | "rating-desc" | "genre" | "">("");
+    const [sortOpen, setSortOpen] = useState(false);
+    const [selectedFilterGenres, setSelectedFilterGenres] = useState<Genre[]>([]);
+    const [genreFilterInput, setGenreFilterInput] = useState("");
+    const [genreFilterDropdownOpen, setGenreFilterDropdownOpen] = useState(false);
+    const [allGenres, setAllGenres] = useState<Genre[]>([]);
+    const [ratingMin, setRatingMin] = useState("");
+    const [ratingMax, setRatingMax] = useState("");
+
+    useEffect(() => {
+        genreClient.getAllGenres().then(setAllGenres).catch(() => {});
+    }, []);
+
     useEffect(() => {
         if (!friendId || !userId) return;
 
@@ -34,7 +48,14 @@ function FriendCollection() {
                     movieClient.getMoviesByUser(userId),
                 ]);
 
-                setMovies(moviesData as MovieWithSeen[]);
+                const withGenres = await Promise.all(
+                    moviesData.map(async m => ({
+                        ...m,
+                        genres: await movieClient.getMovieGenres(m.id).catch(() => []),
+                    }))
+                );
+
+                setMovies(withGenres as MovieWithSeen[]);
                 setMyMovieIds(new Set(myMovies.map(m => m.id!).filter(Boolean)));
 
                 const friend = friends.find((f: User) => f.id === friendId);
@@ -49,8 +70,31 @@ function FriendCollection() {
         fetchFriendData();
     }, [friendId, userId]);
 
-    const seenMovies = movies.filter(m => m.seen === true);
-    const watchlistMovies = movies.filter(m => m.seen !== true);
+    const applyFiltersAndSort = (list: MovieWithSeen[]) => {
+        let result = list;
+        if (search.trim()) {
+            const q = search.trim().toLowerCase();
+            result = result.filter(m => m.title?.toLowerCase().includes(q));
+        }
+        if (sortBy === "genre" && selectedFilterGenres.length > 0) {
+            result = result.filter(m =>
+                selectedFilterGenres.every(fg => m.genres?.some(g => g.id === fg.id))
+            );
+        }
+        if (ratingMin !== "" || ratingMax !== "") {
+            const min = ratingMin !== "" ? parseInt(ratingMin) : 0;
+            const max = ratingMax !== "" ? parseInt(ratingMax) : 10;
+            result = result.filter(m => { const r = m.rating ?? 0; return r >= min && r <= max; });
+        }
+        if (sortBy === "name-asc") result = [...result].sort((a, b) => (a.title ?? "").localeCompare(b.title ?? ""));
+        if (sortBy === "name-desc") result = [...result].sort((a, b) => (b.title ?? "").localeCompare(a.title ?? ""));
+        if (sortBy === "rating-asc") result = [...result].sort((a, b) => (a.rating ?? 0) - (b.rating ?? 0));
+        if (sortBy === "rating-desc") result = [...result].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+        return result;
+    };
+
+    const seenMovies = applyFiltersAndSort(movies.filter(m => m.seen === true));
+    const watchlistMovies = applyFiltersAndSort(movies.filter(m => m.seen !== true));
 
     return (
         <div style={{ minHeight: "100vh", background: "#111", color: "#fff" }}>
@@ -103,6 +147,138 @@ function FriendCollection() {
                         </button>
                     </div>
                 </div>
+
+                {/* Search + Sort toolbar */}
+                <div style={{ display: "flex", gap: "10px", marginTop: "12px", alignItems: "flex-start", flexWrap: "wrap" }}>
+                    <input
+                        placeholder="Search movies..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        style={{
+                            flex: 1, minWidth: "180px",
+                            padding: "7px 12px", borderRadius: "6px",
+                            border: "1px solid #333", background: "#111",
+                            color: "#fff", fontSize: "0.9rem",
+                        }}
+                    />
+                    <div style={{ position: "relative" }}>
+                        <button
+                            onClick={() => setSortOpen(o => !o)}
+                            style={{
+                                padding: "7px 14px", borderRadius: "6px",
+                                background: sortBy ? "#e50914" : "#2a2a2a",
+                                color: "#fff", border: "none", cursor: "pointer",
+                                fontSize: "0.9rem", whiteSpace: "nowrap",
+                            }}
+                        >
+                            Sort {sortBy ? "▲" : "▼"}
+                        </button>
+                        {sortOpen && (
+                            <div style={{
+                                position: "absolute", top: "100%", right: 0,
+                                background: "#2a2a2a", borderRadius: "8px",
+                                border: "1px solid #444", zIndex: 20,
+                                marginTop: "4px", minWidth: "200px", overflow: "hidden",
+                            }}>
+                                {(["name-asc", "name-desc", "rating-desc", "rating-asc", "genre"] as const).map(opt => {
+                                    const labels: Record<string, string> = {
+                                        "name-asc": "Name (A → Z)", "name-desc": "Name (Z → A)",
+                                        "rating-desc": "Rating (high → low)", "rating-asc": "Rating (low → high)",
+                                        "genre": "Filter by genre",
+                                    };
+                                    return (
+                                        <div
+                                            key={opt}
+                                            onMouseDown={() => { setSortBy(sortBy === opt ? "" : opt); if (opt !== "genre") setSortOpen(false); }}
+                                            style={{
+                                                padding: "9px 14px", cursor: "pointer", fontSize: "0.88rem",
+                                                background: sortBy === opt ? "#444" : "transparent",
+                                                fontWeight: sortBy === opt ? "bold" : "normal",
+                                            }}
+                                            onMouseEnter={e => (e.currentTarget.style.background = sortBy === opt ? "#444" : "#333")}
+                                            onMouseLeave={e => (e.currentTarget.style.background = sortBy === opt ? "#444" : "transparent")}
+                                        >
+                                            {labels[opt]}
+                                        </div>
+                                    );
+                                })}
+                                <div style={{ padding: "8px 14px", borderTop: "1px solid #444" }}>
+                                    <div style={{ fontSize: "0.78rem", color: "#aaa", marginBottom: "6px" }}>Rating range</div>
+                                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                        <input type="number" min="0" max="10" placeholder="Min" value={ratingMin} onChange={e => setRatingMin(e.target.value)}
+                                            style={{ width: "56px", padding: "4px 6px", borderRadius: "4px", border: "1px solid #555", background: "#111", color: "#fff", fontSize: "0.85rem" }} />
+                                        <span style={{ color: "#aaa" }}>–</span>
+                                        <input type="number" min="0" max="10" placeholder="Max" value={ratingMax} onChange={e => setRatingMax(e.target.value)}
+                                            style={{ width: "56px", padding: "4px 6px", borderRadius: "4px", border: "1px solid #555", background: "#111", color: "#fff", fontSize: "0.85rem" }} />
+                                    </div>
+                                </div>
+                                {sortBy && (
+                                    <div
+                                        onMouseDown={() => { setSortBy(""); setSelectedFilterGenres([]); setGenreFilterInput(""); setRatingMin(""); setRatingMax(""); setSortOpen(false); }}
+                                        style={{ padding: "8px 14px", cursor: "pointer", fontSize: "0.82rem", color: "#e50914", borderTop: "1px solid #444" }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = "#333")}
+                                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                                    >
+                                        Clear sorting
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {sortBy === "genre" && (
+                    <div style={{ marginTop: "8px", position: "relative" }}>
+                        <input
+                            autoFocus
+                            placeholder="Search genres..."
+                            value={genreFilterInput}
+                            onChange={e => { setGenreFilterInput(e.target.value); setGenreFilterDropdownOpen(e.target.value.length > 0); }}
+                            onFocus={() => { if (genreFilterInput.length > 0) setGenreFilterDropdownOpen(true); }}
+                            onBlur={() => setTimeout(() => setGenreFilterDropdownOpen(false), 150)}
+                            style={{
+                                width: "100%", boxSizing: "border-box",
+                                padding: "7px 12px", borderRadius: "6px",
+                                border: "1px solid #e50914", background: "#111",
+                                color: "#fff", fontSize: "0.9rem",
+                            }}
+                            autoComplete="off"
+                        />
+                        {genreFilterDropdownOpen && (() => {
+                            const filtered = allGenres
+                                .filter(g => g.name?.toLowerCase().includes(genreFilterInput.toLowerCase()) && !selectedFilterGenres.some(s => s.id === g.id))
+                                .slice(0, 5);
+                            return filtered.length > 0 ? (
+                                <div style={{
+                                    position: "absolute", top: "100%", left: 0, right: 0,
+                                    background: "#2a2a2a", borderRadius: "6px",
+                                    border: "1px solid #444", zIndex: 30,
+                                    overflow: "hidden", marginTop: "2px",
+                                }}>
+                                    {filtered.map(g => (
+                                        <div key={g.id}
+                                            onMouseDown={() => { setSelectedFilterGenres(prev => [...prev, g]); setGenreFilterInput(""); setGenreFilterDropdownOpen(false); }}
+                                            style={{ padding: "8px 12px", cursor: "pointer", fontSize: "0.88rem" }}
+                                            onMouseEnter={e => (e.currentTarget.style.background = "#3a3a3a")}
+                                            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                                        >{g.name}</div>
+                                    ))}
+                                </div>
+                            ) : null;
+                        })()}
+                        {selectedFilterGenres.length > 0 && (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px" }}>
+                                {selectedFilterGenres.map(g => (
+                                    <span key={g.id} style={{ background: "#333", borderRadius: "20px", padding: "3px 10px", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                                        {g.name}
+                                        <button type="button" onClick={() => setSelectedFilterGenres(prev => prev.filter(s => s.id !== g.id))}
+                                            style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 0, fontSize: "0.9rem", lineHeight: 1 }}>×</button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Content */}
@@ -292,6 +468,19 @@ function FriendMovieCard({ movie, showSeenBadge, userId, myMovieIds, onAdded }: 
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "4px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", minWidth: 0 }}>
                     <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{movie.title}</span>
+                    {movie.genres && movie.genres.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", alignItems: "center" }}>
+                            {movie.genres.slice(0, 3).map(g => (
+                                <span key={g.id} style={{
+                                    background: "#2a2a2a", borderRadius: "4px",
+                                    padding: "1px 6px", fontSize: "0.7rem", color: "#aaa",
+                                }}>{g.name}</span>
+                            ))}
+                            {movie.genres.length > 3 && (
+                                <span style={{ fontSize: "0.7rem", color: "#666" }}>and {movie.genres.length - 3} more</span>
+                            )}
+                        </div>
+                    )}
                     <span style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</span>
                 </div>
                 {!alreadyOwned && (
