@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useAtomValue } from "jotai";
-import { movieClient } from "./baseUrl.ts";
-import type { Movie } from "./generated-ts-client.ts";
+import { genreClient, movieClient } from "./baseUrl.ts";
+import type { Genre, Movie } from "./generated-ts-client.ts";
 import { tokenAtom, userInfoAtom } from "./Token.tsx";
 
 function getUserIdFromToken(token: string | null): string | null {
@@ -35,6 +35,11 @@ function MovieDetails() {
     const [movieRating, setMovieRating] = useState<number | null>(null);
     const [isSeen, setIsSeen] = useState<boolean>(false);
     const [updatingSeen, setUpdatingSeen] = useState(false);
+
+    const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
+    const [allGenres, setAllGenres] = useState<Genre[]>([]);
+    const [genreInput, setGenreInput] = useState("");
+    const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
     
     // Store the return tab from navigation state
     const returnTab = location.state?.returnTab || "watchlist";
@@ -55,7 +60,10 @@ function MovieDetails() {
         }).catch(() => {
             setMovieRating(null);
         });
-    }, [movie, userId]);
+
+        movieClient.getMovieGenres(movie.id).then(setSelectedGenres).catch(() => {});
+        genreClient.getAllGenres().then(setAllGenres).catch(() => {});
+    }, [movie?.id, userId]);
 
     if (!movie) {
         return (
@@ -71,6 +79,43 @@ function MovieDetails() {
         );
     }
 
+    const filteredGenres = allGenres
+        .filter(g =>
+            g.name?.toLowerCase().includes(genreInput.toLowerCase()) &&
+            !selectedGenres.some(s => s.id === g.id)
+        )
+        .slice(0, 5);
+
+    const addGenre = (genre: Genre) => {
+        if (!selectedGenres.some(g => g.id === genre.id)) {
+            setSelectedGenres(prev => [...prev, genre]);
+        }
+        setGenreInput("");
+        setGenreDropdownOpen(false);
+    };
+
+    const handleGenreKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const name = genreInput.trim();
+        if (!name) return;
+
+        const existing = allGenres.find(g => g.name?.toLowerCase() === name.toLowerCase());
+        if (existing) { addGenre(existing); return; }
+
+        try {
+            const created = await genreClient.createGenre(name);
+            setAllGenres(prev => [...prev, created]);
+            addGenre(created);
+        } catch {
+            setError("Could not create genre.");
+        }
+    };
+
+    const removeGenre = (id: string | undefined) => {
+        setSelectedGenres(prev => prev.filter(g => g.id !== id));
+    };
+
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) setPhotoPreview(URL.createObjectURL(file));
@@ -82,6 +127,13 @@ function MovieDetails() {
         setSaved(false);
         setError(null);
         try {
+            if (rating && userId && movie.id) {
+                await movieClient.updateMovieRating(userId ?? undefined, movie.id, parseInt(rating));
+                setMovieRating(parseInt(rating));
+            }
+
+            await movieClient.updateMovieGenres(movie.id, selectedGenres);
+
             const updated = await movieClient.editMovie({
                 ...movie,
                 title: title.trim(),
@@ -90,10 +142,6 @@ function MovieDetails() {
                 starring: starring.trim() || undefined,
             });
             setMovie({ ...updated, seen: isSeen, rating: movieRating });
-
-            if (rating && userId && movie.id) {
-                await movieClient.updateMovieRating(userId ?? undefined, movie.id, parseInt(rating));
-            }
 
             setSaved(true);
             setTimeout(() => setSaved(false), 2500);
@@ -179,7 +227,7 @@ function MovieDetails() {
                                 gap: "6px",
                             }}>
                                 <span>⭐</span>
-                                <span>{movieRating}</span>
+                                <span>{rating}</span>
                             </div>
                         )}
                         {isSeen && (
@@ -247,6 +295,60 @@ function MovieDetails() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                         <label style={labelStyle}>Starring</label>
                         <input value={starring} onChange={e => setStarring(e.target.value)} style={inputStyle} />
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <label style={labelStyle}>Genres</label>
+                        <div style={{ position: "relative" }}>
+                            <input
+                                placeholder="Type and press Enter to add"
+                                value={genreInput}
+                                onChange={e => { setGenreInput(e.target.value); setGenreDropdownOpen(true); }}
+                                onKeyDown={handleGenreKeyDown}
+                                onFocus={() => setGenreDropdownOpen(true)}
+                                onBlur={() => setTimeout(() => setGenreDropdownOpen(false), 150)}
+                                style={inputStyle}
+                                autoComplete="off"
+                            />
+                            {genreDropdownOpen && filteredGenres.length > 0 && (
+                                <div style={{
+                                    position: "absolute", top: "100%", left: 0, right: 0,
+                                    background: "#2a2a2a", borderRadius: "6px",
+                                    border: "1px solid #444", zIndex: 10,
+                                    overflow: "hidden", marginTop: "2px",
+                                }}>
+                                    {filteredGenres.map(g => (
+                                        <div
+                                            key={g.id}
+                                            onMouseDown={() => addGenre(g)}
+                                            style={{ padding: "8px 12px", cursor: "pointer", fontSize: "0.9rem" }}
+                                            onMouseEnter={e => (e.currentTarget.style.background = "#3a3a3a")}
+                                            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                                        >
+                                            {g.name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        {selectedGenres.length > 0 && (
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
+                                {selectedGenres.map(g => (
+                                    <span key={g.id} style={{
+                                        background: "#333", borderRadius: "20px",
+                                        padding: "3px 10px", fontSize: "0.8rem",
+                                        display: "flex", alignItems: "center", gap: "6px",
+                                    }}>
+                                        {g.name}
+                                        <button
+                                            type="button"
+                                            onClick={() => removeGenre(g.id)}
+                                            style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", padding: 0, fontSize: "0.9rem", lineHeight: 1 }}
+                                        >×</button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>

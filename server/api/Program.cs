@@ -59,6 +59,7 @@ public class Program
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IGenreService, GenreService>();
         services.AddScoped<ITokenService, JwtService>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

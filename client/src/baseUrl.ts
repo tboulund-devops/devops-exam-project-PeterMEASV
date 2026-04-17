@@ -1,4 +1,4 @@
-﻿import {AuthClient, MovieClient, UserClient} from "./generated-ts-client.ts";
+﻿import {AuthClient, GenreClient, MovieClient, UserClient} from "./generated-ts-client.ts";
 import {forceLogout, TOKEN_KEY, tokenStorage} from "./Token.tsx";
 
 const isProduction = import.meta.env.PROD;
@@ -40,3 +40,4 @@ export const finalUrl = isProduction ? prod : dev;
 export const authClient = new AuthClient(finalUrl, { fetch: customFetch });
 export const movieClient = new MovieClient(finalUrl, { fetch: customFetch });
 export const userClient = new UserClient(finalUrl, { fetch: customFetch });
+export const genreClient = new GenreClient(finalUrl, { fetch: customFetch });

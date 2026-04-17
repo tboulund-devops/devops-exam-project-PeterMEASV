@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useNavigate, useLocation } from "react-router";
-import { finalUrl, movieClient } from "./baseUrl.ts";
-import type { Movie } from "./generated-ts-client.ts";
+import { finalUrl, genreClient, movieClient } from "./baseUrl.ts";
+import type { Genre, Movie } from "./generated-ts-client.ts";
 import { TOKEN_KEY, tokenAtom, tokenStorage, userInfoAtom } from "./Token.tsx";
 
 function getUserIdFromToken(token: string | null): string | null {
@@ -16,7 +16,7 @@ function getUserIdFromToken(token: string | null): string | null {
 }
 
 // Extended Movie type with seen status
-type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null };
+type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null; genres?: Genre[] };
 
 // ... existing code for CreateMovieModal ...
 
@@ -37,6 +37,55 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const [genreInput, setGenreInput] = useState("");
+    const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
+    const [allGenres, setAllGenres] = useState<Genre[]>([]);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    useEffect(() => {
+        genreClient.getAllGenres().then(setAllGenres).catch(() => {});
+    }, []);
+
+    const filteredGenres = allGenres
+        .filter(g =>
+            g.name?.toLowerCase().includes(genreInput.toLowerCase()) &&
+            !selectedGenres.some(s => s.id === g.id)
+        )
+        .slice(0, 5);
+
+    const addGenre = (genre: Genre) => {
+        if (!selectedGenres.some(g => g.id === genre.id)) {
+            setSelectedGenres(prev => [...prev, genre]);
+        }
+        setGenreInput("");
+        setDropdownOpen(false);
+    };
+
+    const handleGenreKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const name = genreInput.trim();
+        if (!name) return;
+
+        const existing = allGenres.find(g => g.name?.toLowerCase() === name.toLowerCase());
+        if (existing) {
+            addGenre(existing);
+            return;
+        }
+
+        try {
+            const created = await genreClient.createGenre(name);
+            setAllGenres(prev => [...prev, created]);
+            addGenre(created);
+        } catch {
+            setError("Could not create genre.");
+        }
+    };
+
+    const removeGenre = (id: string | undefined) => {
+        setSelectedGenres(prev => prev.filter(g => g.id !== id));
+    };
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
@@ -74,9 +123,11 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
             if (photoFile) formData.append("photo", photoFile, photoFile.name);
 
             let url = `${finalUrl}/Movie/CreateMovie?userID=${encodeURIComponent(userId)}`;
-            if (rating) {
-                url += `&rating=${encodeURIComponent(rating)}`;
-            }
+            if (rating) url += `&rating=${encodeURIComponent(rating)}`;
+            selectedGenres.forEach((g, i) => {
+                if (g.id) url += `&genres[${i}].id=${encodeURIComponent(g.id)}`;
+                if (g.name) url += `&genres[${i}].name=${encodeURIComponent(g.name)}`;
+            });
 
             const token = tokenStorage.getItem(TOKEN_KEY, null);
             const response = await fetch(url, {
@@ -147,6 +198,65 @@ function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
                         onChange={e => setRating(e.target.value)}
                         style={inputStyle}
                     />
+
+                    {/* Genre input */}
+                    <div style={{ position: "relative" }}>
+                        <input
+                            placeholder="Genres (type and press Enter)"
+                            value={genreInput}
+                            onChange={e => { setGenreInput(e.target.value); setDropdownOpen(true); }}
+                            onKeyDown={handleGenreKeyDown}
+                            onFocus={() => setDropdownOpen(true)}
+                            onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
+                            style={inputStyle}
+                            autoComplete="off"
+                        />
+                        {dropdownOpen && filteredGenres.length > 0 && (
+                            <div style={{
+                                position: "absolute", top: "100%", left: 0, right: 0,
+                                background: "#2a2a2a", borderRadius: "6px",
+                                border: "1px solid #444", zIndex: 10,
+                                overflow: "hidden", marginTop: "2px",
+                            }}>
+                                {filteredGenres.map(g => (
+                                    <div
+                                        key={g.id}
+                                        onMouseDown={() => addGenre(g)}
+                                        style={{
+                                            padding: "8px 12px", cursor: "pointer",
+                                            fontSize: "0.9rem",
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.background = "#3a3a3a")}
+                                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                                    >
+                                        {g.name}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    {selectedGenres.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                            {selectedGenres.map(g => (
+                                <span key={g.id} style={{
+                                    background: "#333", borderRadius: "20px",
+                                    padding: "3px 10px", fontSize: "0.8rem",
+                                    display: "flex", alignItems: "center", gap: "6px",
+                                }}>
+                                    {g.name}
+                                    <button
+                                        type="button"
+                                        onClick={() => removeGenre(g.id)}
+                                        style={{
+                                            background: "none", border: "none",
+                                            color: "#aaa", cursor: "pointer",
+                                            padding: 0, fontSize: "0.9rem", lineHeight: 1,
+                                        }}
+                                    >×</button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                         <label htmlFor="poster-upload" style={{ fontSize: "0.85rem", color: "#aaa" }}>Poster (optional)</label>
@@ -260,6 +370,16 @@ function MovieCard({ movie, onClick, showSeenBadge }: MovieCardProps) {
                 </div>
             )}
             <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{movie.title}</span>
+            {movie.genres && movie.genres.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                    {movie.genres.slice(0, 3).map(g => (
+                        <span key={g.id} style={{
+                            background: "#2a2a2a", borderRadius: "4px",
+                            padding: "1px 6px", fontSize: "0.7rem", color: "#aaa",
+                        }}>{g.name}</span>
+                    ))}
+                </div>
+            )}
             <span style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</span>
         </div>
     );
@@ -293,7 +413,13 @@ function Dashboard() {
         setLoading(true);
         try {
             const moviesData = await movieClient.getMoviesByUser(userId);
-            setMovies(moviesData as MovieWithSeen[]);
+            const withGenres = await Promise.all(
+                moviesData.map(async m => ({
+                    ...m,
+                    genres: await movieClient.getMovieGenres(m.id).catch(() => []),
+                }))
+            );
+            setMovies(withGenres as MovieWithSeen[]);
         } catch {
             setError("Could not load movies.");
         } finally {

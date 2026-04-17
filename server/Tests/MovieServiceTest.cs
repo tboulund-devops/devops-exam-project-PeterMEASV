@@ -300,13 +300,13 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         // Arrange
         var userId = "user1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
-        var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1, Actor 2", null);
+        var createMovieDto = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1, Actor 2", null);
         
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await movieService.CreateMovie(createMovieDTO, userId);
+        var result = await movieService.CreateMovie(createMovieDto, userId, new List<Genre>());
 
         // Assert
         Assert.NotNull(result);
@@ -316,7 +316,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         Assert.Equal("A great movie", result.Description);
         Assert.Equal("Actor 1, Actor 2", result.Starring);
         
-        var dbMovie = dbContext.Movies.FirstOrDefault(m => m.Id == result.Id);
+        var dbMovie = await dbContext.Movies.FirstOrDefaultAsync(m => m.Id == result.Id);
         Assert.NotNull(dbMovie);
         Assert.Equal("New Movie", dbMovie.Title);
     }
@@ -331,7 +331,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.CreateMovie(createMovieDTO, invalidUserId));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.CreateMovie(createMovieDTO, invalidUserId, new List<Genre>()));
         Assert.Equal("User not found", exception.Message);
     }
 
@@ -349,7 +349,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await movieService.CreateMovie(createMovieDTO, userId);
+        var result = await movieService.CreateMovie(createMovieDTO, userId, new List<Genre>());
 
         // Assert
         Assert.NotNull(result);
@@ -371,7 +371,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await movieService.CreateMovie(createMovieDTO, userId);
+        var result = await movieService.CreateMovie(createMovieDTO, userId, new List<Genre>());
 
         // Assert
         Assert.NotNull(result);
@@ -394,8 +394,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result1 = await movieService.CreateMovie(createMovieDTO1, userId);
-        var result2 = await movieService.CreateMovie(createMovieDTO2, userId);
+        var result1 = await movieService.CreateMovie(createMovieDTO1, userId, new List<Genre>());
+        var result2 = await movieService.CreateMovie(createMovieDTO2, userId, new List<Genre>());
 
         // Assert
         Assert.NotNull(result1.Id);
@@ -418,7 +418,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await movieService.CreateMovie(createMovieDTO, userId, rating);
+        var result = await movieService.CreateMovie(createMovieDTO, userId,new List<Genre>(), rating);
 
         // Assert
         Assert.NotNull(result);
@@ -442,7 +442,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.CreateMovie(createMovieDTO, userId, invalidRating));
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.CreateMovie(createMovieDTO, userId,new List<Genre>(), invalidRating));
         Assert.Equal("Rating must be between 1 and 10", exception.Message);
     }
 
@@ -776,7 +776,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await movieService.CreateMovie(createMovieDTO, userId, rating);
+        var result = await movieService.CreateMovie(createMovieDTO, userId, new List<Genre>(), rating);
 
         // Assert
         Assert.NotNull(result);
@@ -801,7 +801,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.CreateMovie(createMovieDTO, userId, invalidRating));
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.CreateMovie(createMovieDTO, userId, new List<Genre>(), invalidRating));
         Assert.Equal("Rating must be between 1 and 10", exception.Message);
     }
 

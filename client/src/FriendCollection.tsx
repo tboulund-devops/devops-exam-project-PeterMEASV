@@ -20,6 +20,7 @@ function FriendCollection() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabType>("watchlist");
+    const [myMovieIds, setMyMovieIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (!friendId || !userId) return;
@@ -27,19 +28,17 @@ function FriendCollection() {
         const fetchFriendData = async () => {
             setLoading(true);
             try {
-                // Fetch friend's movies
-                const moviesData = await movieClient.getMoviesByUser(friendId);
-                setMovies(moviesData as MovieWithSeen[]);
+                const [moviesData, friends, myMovies] = await Promise.all([
+                    movieClient.getMoviesByUser(friendId),
+                    userClient.getAllFriendsForUser(userId),
+                    movieClient.getMoviesByUser(userId),
+                ]);
 
-                // Fetch current user's friends list to get friend's name
-                const friends = await userClient.getAllFriendsForUser(userId);
+                setMovies(moviesData as MovieWithSeen[]);
+                setMyMovieIds(new Set(myMovies.map(m => m.id!).filter(Boolean)));
+
                 const friend = friends.find((f: User) => f.id === friendId);
-                
-                if (friend) {
-                    setFriendName(friend.name ?? friend.email ?? friendId);
-                } else {
-                    setFriendName(friendId); // Fallback to ID if not found in friends list
-                }
+                setFriendName(friend ? (friend.name ?? friend.email ?? friendId) : friendId);
             } catch {
                 setError("Could not load friend's collection.");
             } finally {
@@ -137,6 +136,9 @@ function FriendCollection() {
                                             <FriendMovieCard
                                                 key={movie.id}
                                                 movie={movie}
+                                                userId={userId}
+                                                myMovieIds={myMovieIds}
+                                                onAdded={id => setMyMovieIds(prev => new Set([...prev, id]))}
                                             />
                                         ))}
                                     </div>
@@ -167,6 +169,9 @@ function FriendCollection() {
                                                 key={movie.id}
                                                 movie={movie}
                                                 showSeenBadge
+                                                userId={userId}
+                                                myMovieIds={myMovieIds}
+                                                onAdded={id => setMyMovieIds(prev => new Set([...prev, id]))}
                                             />
                                         ))}
                                     </div>
@@ -185,9 +190,27 @@ function FriendCollection() {
 type FriendMovieCardProps = {
     movie: MovieWithSeen;
     showSeenBadge?: boolean;
+    userId?: string;
+    myMovieIds?: Set<string>;
+    onAdded?: (movieId: string) => void;
 };
 
-function FriendMovieCard({ movie, showSeenBadge }: FriendMovieCardProps) {
+function FriendMovieCard({ movie, showSeenBadge, userId, myMovieIds, onAdded }: FriendMovieCardProps) {
+    const [adding, setAdding] = useState(false);
+    const alreadyOwned = movie.id ? myMovieIds?.has(movie.id) : true;
+
+    const handleAdd = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!userId || !movie.id || alreadyOwned) return;
+        setAdding(true);
+        try {
+            await movieClient.addMovieToUser(movie.id, userId);
+            onAdded?.(movie.id);
+        } finally {
+            setAdding(false);
+        }
+    };
+
     return (
         <div
             style={{
@@ -266,8 +289,34 @@ function FriendMovieCard({ movie, showSeenBadge }: FriendMovieCardProps) {
                     <span>{movie.rating}</span>
                 </div>
             )}
-            <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{movie.title}</span>
-            <span style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</span>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "4px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", minWidth: 0 }}>
+                    <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{movie.title}</span>
+                    <span style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</span>
+                </div>
+                {!alreadyOwned && (
+                    <button
+                        onClick={handleAdd}
+                        disabled={adding}
+                        title="Add to my watchlist"
+                        style={{
+                            flexShrink: 0,
+                            background: "none",
+                            border: "none",
+                            color: "#aaa",
+                            cursor: adding ? "default" : "pointer",
+                            fontSize: "22px",
+                            lineHeight: 1,
+                            padding: "0 2px",
+                            transition: "color 0.15s ease, transform 0.15s ease",
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "scale(1.3)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = "#aaa"; e.currentTarget.style.transform = "scale(1)"; }}
+                    >
+                        {adding ? "…" : "+"}
+                    </button>
+                )}
+            </div>
         </div>
     );
 }

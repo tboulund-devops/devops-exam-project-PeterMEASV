@@ -115,11 +115,11 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpPost]
     [Route(nameof(CreateMovie))]
-    public async Task<ActionResult<Movie>> CreateMovie([FromForm] CreateMovieDto movie, [FromQuery] string userID, [FromQuery] int rating)
+    public async Task<ActionResult<Movie>> CreateMovie([FromForm] CreateMovieDto movie, [FromQuery] string userId, [FromQuery] int rating, [FromQuery] List<Genre> genres)
     {
         try
         {
-            return Ok(await movieService.CreateMovie(movie, userID, rating));
+            return Ok(await movieService.CreateMovie(movie, userId, genres, rating));
         }
         catch (Exception)
         {
@@ -127,6 +127,35 @@ public class MovieController(IMovieService movieService) : ControllerBase
         }
     }
     
+    [HttpGet]
+    [Route(nameof(GetMovieGenres))]
+    public async Task<ActionResult<List<Genre>>> GetMovieGenres([FromQuery] string movieId)
+    {
+        try
+        {
+            return Ok(await movieService.GetMovieGenres(movieId));
+        }
+        catch (Exception)
+        {
+            return BadRequest("Could not fetch genres for movie");
+        }
+    }
+
+    [HttpPatch]
+    [Route(nameof(UpdateMovieGenres))]
+    public async Task<ActionResult> UpdateMovieGenres([FromQuery] string movieId, [FromBody] List<Genre> genres)
+    {
+        try
+        {
+            await movieService.UpdateMovieGenres(movieId, genres);
+            return Ok();
+        }
+        catch (Exception)
+        {
+            return BadRequest("Could not update genres for movie");
+        }
+    }
+
     [HttpPost]
     [Route(nameof(AddMovieToSeen))]
     public async Task<ActionResult<Movie>> AddMovieToSeen([FromQuery] string movieId, [FromQuery] string userId, [FromQuery] Boolean seen)
@@ -140,4 +169,5 @@ public class MovieController(IMovieService movieService) : ControllerBase
             return BadRequest("Could not add movie to seen");
         }
     }
+    
 }

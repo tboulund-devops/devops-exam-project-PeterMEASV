@@ -184,10 +184,10 @@ public class MovieControllerTest
         var rating = 0;
         var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
         var createdMovie = new Movie { Id = Guid.NewGuid().ToString(), Title = "New Movie", Year = 2023, Starring = "Actor 1", Description = "A great movie" };
-        _mockService.Setup(s => s.CreateMovie(createMovieDTO, userId, It.IsAny<int?>())).ReturnsAsync(createdMovie);
+        _mockService.Setup(s => s.CreateMovie(createMovieDTO, userId, It.IsAny<List<Genre>>(), It.IsAny<int?>())).ReturnsAsync(createdMovie);
 
         // Act
-        var result = await _controller.CreateMovie(createMovieDTO, userId, rating);
+        var result = await _controller.CreateMovie(createMovieDTO, userId, rating, new List<Genre>());
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -201,10 +201,10 @@ public class MovieControllerTest
         var invalidUserId = "nonexistent-user";
         var rating = 0;
         var createMovieDTO = new CreateMovieDto("New Movie", 2023, "A great movie", "Actor 1", null);
-        _mockService.Setup(s => s.CreateMovie(createMovieDTO, invalidUserId, It.IsAny<int?>())).ThrowsAsync(new Exception("User not found"));
+        _mockService.Setup(s => s.CreateMovie(createMovieDTO, invalidUserId, It.IsAny<List<Genre>>(), It.IsAny<int?>())).ThrowsAsync(new Exception("User not found"));
 
         // Act
-        var result = await _controller.CreateMovie(createMovieDTO, invalidUserId, rating);
+        var result = await _controller.CreateMovie(createMovieDTO, invalidUserId, rating, new List<Genre>());
 
         // Assert
         var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);

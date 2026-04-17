@@ -11,7 +11,11 @@ public partial class MyDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Genre> Genres { get; set; }
+
     public virtual DbSet<Movie> Movies { get; set; }
+
+    public virtual DbSet<MoviesGenre> MoviesGenres { get; set; }
 
     public virtual DbSet<Series> Series { get; set; }
 
@@ -23,6 +27,16 @@ public partial class MyDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Genre>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("genres_pkey");
+
+            entity.ToTable("genres", "filmjournal");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnName("name");
+        });
+
         modelBuilder.Entity<Movie>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("movies_pkey");
@@ -35,6 +49,16 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Starring).HasColumnName("starring");
             entity.Property(e => e.Title).HasColumnName("title");
             entity.Property(e => e.Year).HasColumnName("year");
+        });
+
+        modelBuilder.Entity<MoviesGenre>(entity =>
+        {
+            entity.HasKey(e => new { e.MovieId, e.GenreId }).HasName("movies_genres_pkey");
+
+            entity.ToTable("movies_genres", "filmjournal");
+
+            entity.Property(e => e.MovieId).HasColumnName("movie_id");
+            entity.Property(e => e.GenreId).HasColumnName("genre_id");
         });
 
         modelBuilder.Entity<Series>(entity =>

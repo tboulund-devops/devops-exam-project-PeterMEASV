@@ -144,7 +144,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         return Task.FromResult(existingMovie);
     }
 
-    public async Task<Movie> CreateMovie(CreateMovieDto movieDto, string userId, int? rating = null)
+    public async Task<Movie> CreateMovie(CreateMovieDto movieDto, string userId, List<Genre> genres, int? rating = null)
     {
         
         User? user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
@@ -178,6 +178,12 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
             Photo = url
         };
         context.Movies.Add(movie);
+        
+        foreach (Genre genre in genres ?? [])
+        {
+            context.MoviesGenres.Add(new MoviesGenre { MovieId = movie.Id, GenreId = genre.Id });
+        }
+        
         context.UsersMovies.Add(new UsersMovie {UserId = userId, MovieId = movie.Id, Rating = rating, Seen = false});
         await context.SaveChangesAsync();
         return movie;
@@ -210,5 +216,30 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         await context.SaveChangesAsync();
         
         return movie;
+    }
+
+    public Task<List<Genre>> GetMovieGenres(string movieId)
+    {
+        var genreIds = context.MoviesGenres
+            .Where(mg => mg.MovieId == movieId)
+            .Select(mg => mg.GenreId)
+            .ToHashSet();
+
+        return context.Genres
+            .Where(g => genreIds.Contains(g.Id))
+            .ToListAsync();
+    }
+
+    public async Task UpdateMovieGenres(string movieId, List<Genre> genres)
+    {
+        var existing = context.MoviesGenres.Where(mg => mg.MovieId == movieId);
+        context.MoviesGenres.RemoveRange(existing);
+
+        foreach (var genre in genres)
+        {
+            context.MoviesGenres.Add(new MoviesGenre { MovieId = movieId, GenreId = genre.Id });
+        }
+
+        await context.SaveChangesAsync();
     }
 }

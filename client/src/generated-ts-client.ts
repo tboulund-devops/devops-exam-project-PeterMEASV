@@ -88,6 +88,129 @@ export class AuthClient {
     }
 }
 
+export class GenreClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    createGenre(genreName: string | undefined): Promise<Genre> {
+        let url_ = this.baseUrl + "/Genre/CreateGenre?";
+        if (genreName === null)
+            throw new globalThis.Error("The parameter 'genreName' cannot be null.");
+        else if (genreName !== undefined)
+            url_ += "genreName=" + encodeURIComponent("" + genreName) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateGenre(_response);
+        });
+    }
+
+    protected processCreateGenre(response: Response): Promise<Genre> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Genre;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Genre>(null as any);
+    }
+
+    getAllGenres(): Promise<Genre[]> {
+        let url_ = this.baseUrl + "/Genre/GetAllGenres";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAllGenres(_response);
+        });
+    }
+
+    protected processGetAllGenres(response: Response): Promise<Genre[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Genre[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Genre[]>(null as any);
+    }
+
+    deleteGenre(genreId: string | undefined): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/Genre/DeleteGenre?";
+        if (genreId === null)
+            throw new globalThis.Error("The parameter 'genreId' cannot be null.");
+        else if (genreId !== undefined)
+            url_ += "genreId=" + encodeURIComponent("" + genreId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteGenre(_response);
+        });
+    }
+
+    protected processDeleteGenre(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+}
+
 export class MovieClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -378,16 +501,25 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
-    createMovie(userID: string | undefined, rating: number | undefined, title: string | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
+    createMovie(userId: string | undefined, rating: number | undefined, genres: Genre[] | undefined, title: string | undefined, year: number | undefined, description: string | null | undefined, starring: string | null | undefined, photo: FileParameter | null | undefined): Promise<Movie> {
         let url_ = this.baseUrl + "/Movie/CreateMovie?";
-        if (userID === null)
-            throw new globalThis.Error("The parameter 'userID' cannot be null.");
-        else if (userID !== undefined)
-            url_ += "userID=" + encodeURIComponent("" + userID) + "&";
+        if (userId === null)
+            throw new globalThis.Error("The parameter 'userId' cannot be null.");
+        else if (userId !== undefined)
+            url_ += "userId=" + encodeURIComponent("" + userId) + "&";
         if (rating === null)
             throw new globalThis.Error("The parameter 'rating' cannot be null.");
         else if (rating !== undefined)
             url_ += "rating=" + encodeURIComponent("" + rating) + "&";
+        if (genres === null)
+            throw new globalThis.Error("The parameter 'genres' cannot be null.");
+        else if (genres !== undefined)
+            genres && genres.forEach((item, index) => {
+                for (const attr in item)
+        			if (item.hasOwnProperty(attr)) {
+        				url_ += "genres[" + index + "]." + attr + "=" + encodeURIComponent("" + (item as any)[attr]) + "&";
+        			}
+            });
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -434,6 +566,89 @@ export class MovieClient {
             });
         }
         return Promise.resolve<Movie>(null as any);
+    }
+
+    getMovieGenres(movieId: string | undefined): Promise<Genre[]> {
+        let url_ = this.baseUrl + "/Movie/GetMovieGenres?";
+        if (movieId === null)
+            throw new globalThis.Error("The parameter 'movieId' cannot be null.");
+        else if (movieId !== undefined)
+            url_ += "movieId=" + encodeURIComponent("" + movieId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMovieGenres(_response);
+        });
+    }
+
+    protected processGetMovieGenres(response: Response): Promise<Genre[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Genre[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Genre[]>(null as any);
+    }
+
+    updateMovieGenres(movieId: string | undefined, genres: Genre[]): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/Movie/UpdateMovieGenres?";
+        if (movieId === null)
+            throw new globalThis.Error("The parameter 'movieId' cannot be null.");
+        else if (movieId !== undefined)
+            url_ += "movieId=" + encodeURIComponent("" + movieId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(genres);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMovieGenres(_response);
+        });
+    }
+
+    protected processUpdateMovieGenres(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
     }
 
     addMovieToSeen(movieId: string | undefined, userId: string | undefined, seen: boolean | undefined): Promise<Movie> {
@@ -676,6 +891,11 @@ export interface User {
     name?: string;
     email?: string;
     password?: string;
+}
+
+export interface Genre {
+    id?: string;
+    name?: string;
 }
 
 export interface Movie {

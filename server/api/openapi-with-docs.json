@@ -58,6 +58,90 @@
         }
       }
     },
+    "/Genre/CreateGenre": {
+      "post": {
+        "tags": [
+          "Genre"
+        ],
+        "operationId": "Genre_CreateGenre",
+        "parameters": [
+          {
+            "name": "genreName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Genre"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Genre/GetAllGenres": {
+      "get": {
+        "tags": [
+          "Genre"
+        ],
+        "operationId": "Genre_GetAllGenres",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Genre"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Genre/DeleteGenre": {
+      "delete": {
+        "tags": [
+          "Genre"
+        ],
+        "operationId": "Genre_DeleteGenre",
+        "parameters": [
+          {
+            "name": "genreId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Movie/GetAllMovies": {
       "get": {
         "tags": [
@@ -324,7 +408,7 @@
         "operationId": "Movie_CreateMovie",
         "parameters": [
           {
-            "name": "userID",
+            "name": "userId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -339,6 +423,19 @@
               "format": "int32"
             },
             "x-position": 2
+          },
+          {
+            "name": "genres",
+            "in": "query",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Genre"
+              }
+            },
+            "x-position": 3
           }
         ],
         "requestBody": {
@@ -379,6 +476,85 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Movie"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Movie/GetMovieGenres": {
+      "get": {
+        "tags": [
+          "Movie"
+        ],
+        "operationId": "Movie_GetMovieGenres",
+        "parameters": [
+          {
+            "name": "movieId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Genre"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Movie/UpdateMovieGenres": {
+      "patch": {
+        "tags": [
+          "Movie"
+        ],
+        "operationId": "Movie_UpdateMovieGenres",
+        "parameters": [
+          {
+            "name": "movieId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "genres",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Genre"
+                }
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -618,6 +794,18 @@
             "type": "string"
           },
           "password": {
+            "type": "string"
+          }
+        }
+      },
+      "Genre": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
             "type": "string"
           }
         }
