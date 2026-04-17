@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
+import { useNavigate } from "react-router";
 import { userInfoAtom } from "./Token.tsx";
 import { userClient } from "./baseUrl.ts";
 import type { User } from "./generated-ts-client.ts";
 
 function FriendSidebar() {
+    const navigate = useNavigate();
     const userInfo = useAtomValue(userInfoAtom);
     const userId = userInfo?.id;
 
@@ -37,7 +39,8 @@ function FriendSidebar() {
         }
     };
 
-    const handleRemove = async (friendId: string) => {
+    const handleRemove = async (friendId: string, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent navigation when clicking remove
         if (!userId) return;
         try {
             await userClient.removeFriendForUser(userId, friendId);
@@ -45,6 +48,10 @@ function FriendSidebar() {
         } catch {
             setError("Could not remove friend.");
         }
+    };
+
+    const handleFriendClick = (friendId: string) => {
+        navigate(`/friend/${friendId}`);
     };
 
     return (
@@ -105,17 +112,28 @@ function FriendSidebar() {
                     <li style={{ color: "#555", fontSize: "0.85rem" }}>No friends yet.</li>
                 )}
                 {friends.map(friend => (
-                    <li key={friend.id} style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: "6px",
-                    }}>
+                    <li 
+                        key={friend.id} 
+                        onClick={() => handleFriendClick(friend.id!)}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "6px",
+                            cursor: "pointer",
+                            padding: "8px",
+                            borderRadius: "6px",
+                            background: "#1a1a1a",
+                            transition: "background 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#2a2a2a"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "#1a1a1a"}
+                    >
                         <span style={{ fontSize: "0.85rem", color: "#ddd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {friend.name ?? friend.email ?? friend.id}
                         </span>
                         <button
-                            onClick={() => handleRemove(friend.id!)}
+                            onClick={(e) => handleRemove(friend.id!, e)}
                             title="Remove friend"
                             style={{
                                 background: "none",

@@ -238,6 +238,27 @@ function MovieCard({ movie, onClick, showSeenBadge }: MovieCardProps) {
                     ✓
                 </div>
             )}
+            {movie.rating && movie.rating > 0 && (
+                <div style={{
+                    position: "absolute",
+                    top: "8px",
+                    left: "8px",
+                    background: "rgba(255, 193, 7, 0.95)",
+                    color: "#000",
+                    borderRadius: "6px",
+                    padding: "4px 8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                    gap: "4px",
+                }}>
+                    <span>⭐</span>
+                    <span>{movie.rating}</span>
+                </div>
+            )}
             <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>{movie.title}</span>
             <span style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</span>
         </div>
@@ -288,7 +309,6 @@ function Dashboard() {
         setMovies(prev => [...prev, { ...movie, seen: false }]);
         setModalOpen(false);
     };
-
     const seenMovies = movies.filter(m => m.seen === true);
     const watchlistMovies = movies.filter(m => m.seen !== true);
 

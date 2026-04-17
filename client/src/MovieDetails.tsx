@@ -156,10 +156,53 @@ function MovieDetails() {
             }}>
                 {/* Poster */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", flexShrink: 0 }}>
-                    {photoPreview
-                        ? <img src={photoPreview} alt={title} style={{ width: "220px", aspectRatio: "2/3", objectFit: "cover", borderRadius: "8px" }} />
-                        : <div style={{ width: "220px", aspectRatio: "2/3", background: "#2a2a2a", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>No poster</div>
-                    }
+                    <div style={{ position: "relative" }}>
+                        {photoPreview
+                            ? <img src={photoPreview} alt={title} style={{ width: "220px", aspectRatio: "2/3", objectFit: "cover", borderRadius: "8px" }} />
+                            : <div style={{ width: "220px", aspectRatio: "2/3", background: "#2a2a2a", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#666" }}>No poster</div>
+                        }
+                        {movieRating && movieRating > 0 && (
+                            <div style={{
+                                position: "absolute",
+                                top: "12px",
+                                left: "12px",
+                                background: "rgba(255, 193, 7, 0.95)",
+                                color: "#000",
+                                borderRadius: "8px",
+                                padding: "8px 12px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: "bold",
+                                fontSize: "18px",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                                gap: "6px",
+                            }}>
+                                <span>⭐</span>
+                                <span>{movieRating}</span>
+                            </div>
+                        )}
+                        {isSeen && (
+                            <div style={{
+                                position: "absolute",
+                                top: "12px",
+                                right: "12px",
+                                background: "#4caf50",
+                                color: "#fff",
+                                borderRadius: "50%",
+                                width: "36px",
+                                height: "36px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: "bold",
+                                fontSize: "20px",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                            }}>
+                                ✓
+                            </div>
+                        )}
+                    </div>
                     <button onClick={() => inputRef.current?.click()} style={secondaryButtonStyle}>Change poster</button>
                     <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
 

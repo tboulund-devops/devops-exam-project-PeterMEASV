@@ -6,6 +6,7 @@ import { LoginPage } from "./LoginPage.tsx";
 import RequireAuth from "./RequireAuth.tsx";
 import MovieDetails from "./MovieDetails.tsx";
 import AppLayout from "./AppLayout.tsx";
+import FriendCollection from "./FriendCollection.tsx";
 
 export const connectionIdAtom = atom<string | null>(null);
 
@@ -31,6 +32,10 @@ export const routesAtom = atom<RouteObject[]>([
                     {
                         path: "/movie/:movieId",
                         element: <MovieDetails />
+                    },
+                    {
+                        path: "/friend/:friendId",
+                        element: <FriendCollection />
                     }
                 ]
             }
