@@ -460,7 +460,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        var result = await movieService.CreateMovie(createMovieDTO, userId, null);
+        var result = await movieService.CreateMovie(createMovieDTO, userId, new List<Genre>());
 
         // Assert
         Assert.NotNull(result);
