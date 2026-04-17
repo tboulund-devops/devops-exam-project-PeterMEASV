@@ -35,6 +35,9 @@ Simple three-layer architecture splitting the application into Controllers, Serv
 - **Movie CRUD:** Full Create, Read, Update, and Delete functionality for movies.
 - **Rating System:** Ability for users to rate films and track their preferences.
 - **Statistics:** Recap and statistics of user ratings (sharable with others).
+- **Watchlist & Seen:** Separate your collection into movies you want to watch and movies you've already seen.
+- **Friends System:** Add friends to see their collections and ratings, and copy movies to your own watchlist.
+- **Genres:** Assign genres to movies for better categorization.
 
 ## CI/CD & Automation
 
@@ -44,6 +47,7 @@ This project utilizes automated workflows to ensure code quality and maintain do
 Powered by [Gemini CLI](https://geminicli.com/), the following automated processes run daily:
 - **Daily Documentation Updater:** Scans recent changes and automatically updates the project documentation.
 - **Daily Repo Status:** Generates a daily summary of repository activity, including PRs, issues, and code changes, posted as a GitHub issue.
+- **Code Simplifier:** Analyzes recently modified code and creates pull requests with simplifications that improve clarity and maintainability.
 
 ### Prerequisites for Automation
 To run the Agentic Workflows, the following GitHub Secret is required:
@@ -71,6 +75,7 @@ DONE!
 **Feature 1:** Movie CRUD implementation
 
 **Feature 2:** Early database connection
+DONE!
 
 ### Week 7
 *Winter vacation - nothing planned.*
@@ -79,6 +84,7 @@ DONE!
 **Feature 1:**  Login page, User profile Implementation.  
 
 **Feature 2:** Frontend showcasing movie implementation.
+DONE!
 
 ### Week 9
 **Feature 1:** Frontend Movie CRUD implementation.
@@ -90,14 +96,17 @@ DONE!
 **Feature 1:** Seperate the movies into Watchlist and Seen.
 
 **Feature 2:** Adding friends early implementation
+DONE!
 
 ### Week 11
 **Feature 1:** Complete friends implementation
 
 **Feature 2:** Seeing friends' ratings.
+DONE!
 
 ### Week 12
 **Feature 1:** Implementing genres
+DONE!
 
 **Feature 2:** Sorting System for showcasing movies. 
 
