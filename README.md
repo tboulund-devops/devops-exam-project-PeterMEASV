@@ -37,6 +37,7 @@ Simple three-layer architecture splitting the application into Controllers, Serv
 - **Statistics:** Recap and statistics of user ratings (sharable with others).
 - **Watchlist & Seen:** Separate your collection into movies you want to watch and movies you've already seen.
 - **Friends System:** Add friends to see their collections and ratings, and copy movies to your own watchlist.
+- **Search & Filter:** Advanced sorting and filtering by title, rating, and genres for both personal and friend collections.
 - **Genres:** Assign genres to movies for better categorization.
 
 ## CI/CD & Automation
@@ -109,6 +110,7 @@ DONE!
 DONE!
 
 **Feature 2:** Sorting System for showcasing movies. 
+DONE!
 
 ### Week 13
 **Feature 1:** Adding comments to ratings
