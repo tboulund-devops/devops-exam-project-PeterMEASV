@@ -487,12 +487,63 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        await movieService.UpdateMovieRating(userId, movieId, newRating);
+        await movieService.UpdateMovieRating(userId, movieId, newRating, null);
 
         // Assert
         var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
         Assert.NotNull(userMovie);
         Assert.Equal(newRating, userMovie.Rating);
+    }
+
+    [Fact]
+    public async Task UpdateMovieRating_WithComment_ShouldSaveComment()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId, Rating = 5 });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        await movieService.UpdateMovieRating(userId, movieId, 8, "Really enjoyed this one");
+
+        // Assert
+        var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        Assert.NotNull(userMovie);
+        Assert.Equal(8, userMovie.Rating);
+        Assert.Equal("Really enjoyed this one", userMovie.Comment);
+    }
+
+    [Fact]
+    public async Task UpdateMovieRating_WithNullComment_ShouldClearComment()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId, Rating = 5, Comment = "Old comment" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        await movieService.UpdateMovieRating(userId, movieId, 7, null);
+
+        // Assert
+        var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
+        Assert.NotNull(userMovie);
+        Assert.Null(userMovie.Comment);
     }
 
     [Fact]
@@ -506,14 +557,14 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var invalidRating = 0;
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
         var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
-        
+
         dbContext.Users.Add(user);
         dbContext.Movies.Add(movie);
         dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId });
         await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.UpdateMovieRating(userId, movieId, invalidRating));
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.UpdateMovieRating(userId, movieId, invalidRating, null));
         Assert.Equal("Rating must be between 1 and 10", exception.Message);
     }
 
@@ -528,7 +579,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var rating = 8;
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.UpdateMovieRating(userId, movieId, rating));
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => movieService.UpdateMovieRating(userId, movieId, rating, null));
         Assert.Equal("User movie not found", exception.Message);
     }
 
@@ -543,14 +594,14 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var tooHighRating = 11;
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
         var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
-        
+
         dbContext.Users.Add(user);
         dbContext.Movies.Add(movie);
         dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId });
         await dbContext.SaveChangesAsync();
 
         // Act & Assert
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.UpdateMovieRating(userId, movieId, tooHighRating));
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => movieService.UpdateMovieRating(userId, movieId, tooHighRating, null));
         Assert.Equal("Rating must be between 1 and 10", exception.Message);
     }
 
@@ -565,7 +616,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var expectedRating = 7;
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
         var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
-        
+
         dbContext.Users.Add(user);
         dbContext.Movies.Add(movie);
         dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId, Rating = expectedRating });
@@ -575,11 +626,12 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var result = await movieService.GetMovieRatingByUser(userId, movieId);
 
         // Assert
-        Assert.Equal(expectedRating, result);
+        Assert.NotNull(result);
+        Assert.Equal(expectedRating, result.rating);
     }
 
     [Fact]
-    public async Task GetMovieRatingByUser_WithNullRating_ShouldReturnNull()
+    public async Task GetMovieRatingByUser_WithComment_ShouldReturnComment()
     {
         // Reset database before test
         await ResetDatabaseAsync();
@@ -588,7 +640,32 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var movieId = "movie1";
         var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
         var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
-        
+
+        dbContext.Users.Add(user);
+        dbContext.Movies.Add(movie);
+        dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId, Rating = 9, Comment = "Masterpiece" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.GetMovieRatingByUser(userId, movieId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(9, result.rating);
+        Assert.Equal("Masterpiece", result.comment);
+    }
+
+    [Fact]
+    public async Task GetMovieRatingByUser_WithNullRating_ShouldReturnDtoWithNullRating()
+    {
+        // Reset database before test
+        await ResetDatabaseAsync();
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var user = new User { Id = userId, Name = "Test User", Email = "test@example.com", Password = "pwd" };
+        var movie = new Movie { Id = movieId, Title = "Test Movie", Year = 2020, Starring = "Actor", Description = "Desc" };
+
         dbContext.Users.Add(user);
         dbContext.Movies.Add(movie);
         dbContext.UsersMovies.Add(new UsersMovie { UserId = userId, MovieId = movieId, Rating = null });
@@ -598,7 +675,8 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         var result = await movieService.GetMovieRatingByUser(userId, movieId);
 
         // Assert
-        Assert.Null(result);
+        Assert.NotNull(result);
+        Assert.Null(result.rating);
     }
 
     [Fact]
@@ -823,7 +901,7 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         await dbContext.SaveChangesAsync();
 
         // Act
-        await movieService.UpdateMovieRating(userId, movieId, newRating);
+        await movieService.UpdateMovieRating(userId, movieId, newRating, null);
 
         // Assert
         var userMovie = await dbContext.UsersMovies.FirstOrDefaultAsync(um => um.UserId == userId && um.MovieId == movieId);
@@ -924,5 +1002,96 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
 
         // Assert
         Assert.Equal(10, result.Count);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // GetMovieGenres / UpdateMovieGenres Service Tests
+    // ══════════════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task GetMovieGenres_ShouldReturnGenresForMovie()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        var genre1 = new Genre { Id = "g1", Name = "Action" };
+        var genre2 = new Genre { Id = "g2", Name = "Drama" };
+        var movie = new Movie { Id = "m1", Title = "Test Movie", Year = 2020, Description = "Desc", Starring = "Actor" };
+
+        dbContext.Genres.AddRange(genre1, genre2);
+        dbContext.Movies.Add(movie);
+        dbContext.MoviesGenres.Add(new MoviesGenre { MovieId = "m1", GenreId = "g1" });
+        dbContext.MoviesGenres.Add(new MoviesGenre { MovieId = "m1", GenreId = "g2" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.GetMovieGenres("m1");
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, g => g.Name == "Action");
+        Assert.Contains(result, g => g.Name == "Drama");
+    }
+
+    [Fact]
+    public async Task GetMovieGenres_WithNoGenres_ShouldReturnEmptyList()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        var movie = new Movie { Id = "m1", Title = "Test Movie", Year = 2020, Description = "Desc", Starring = "Actor" };
+        dbContext.Movies.Add(movie);
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.GetMovieGenres("m1");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task UpdateMovieGenres_ShouldReplaceExistingGenres()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        var genre1 = new Genre { Id = "g1", Name = "Action" };
+        var genre2 = new Genre { Id = "g2", Name = "Drama" };
+        var genre3 = new Genre { Id = "g3", Name = "Comedy" };
+        var movie = new Movie { Id = "m1", Title = "Test Movie", Year = 2020, Description = "Desc", Starring = "Actor" };
+
+        dbContext.Genres.AddRange(genre1, genre2, genre3);
+        dbContext.Movies.Add(movie);
+        dbContext.MoviesGenres.Add(new MoviesGenre { MovieId = "m1", GenreId = "g1" });
+        dbContext.MoviesGenres.Add(new MoviesGenre { MovieId = "m1", GenreId = "g2" });
+        await dbContext.SaveChangesAsync();
+
+        // Act — replace genres with just Comedy
+        await movieService.UpdateMovieGenres("m1", new List<Genre> { genre3 });
+
+        // Assert
+        var remaining = dbContext.MoviesGenres.Where(mg => mg.MovieId == "m1").ToList();
+        Assert.Single(remaining);
+        Assert.Equal("g3", remaining[0].GenreId);
+    }
+
+    [Fact]
+    public async Task UpdateMovieGenres_WithEmptyList_ShouldRemoveAllGenres()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        var genre1 = new Genre { Id = "g1", Name = "Action" };
+        var movie = new Movie { Id = "m1", Title = "Test Movie", Year = 2020, Description = "Desc", Starring = "Actor" };
+
+        dbContext.Genres.Add(genre1);
+        dbContext.Movies.Add(movie);
+        dbContext.MoviesGenres.Add(new MoviesGenre { MovieId = "m1", GenreId = "g1" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        await movieService.UpdateMovieGenres("m1", new List<Genre>());
+
+        // Assert
+        var remaining = dbContext.MoviesGenres.Where(mg => mg.MovieId == "m1").ToList();
+        Assert.Empty(remaining);
     }
 }

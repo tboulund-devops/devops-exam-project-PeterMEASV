@@ -70,11 +70,11 @@ public class MovieController(IMovieService movieService) : ControllerBase
     
     [HttpPatch]
     [Route(nameof(UpdateMovieRating))]
-    public async Task<ActionResult> UpdateMovieRating([FromQuery] string userId, [FromQuery] string movieId, [FromQuery] int rating)
+    public async Task<ActionResult> UpdateMovieRating([FromQuery] string userId, [FromQuery] string movieId, [FromQuery] int rating, [FromQuery] string? comment = null)
     {
         try
         {
-            await movieService.UpdateMovieRating(userId, movieId, rating);
+            await movieService.UpdateMovieRating(userId, movieId, rating, comment);
             return Ok();
         }
         catch (Exception e)
@@ -85,7 +85,7 @@ public class MovieController(IMovieService movieService) : ControllerBase
 
     [HttpGet]
     [Route(nameof(GetMovieRatingByUser))]
-    public async Task<ActionResult<int>> GetMovieRatingByUser([FromQuery] string userId, [FromQuery] string movieId)
+    public async Task<ActionResult<ratingDto>> GetMovieRatingByUser([FromQuery] string userId, [FromQuery] string movieId)
     {
         try
         {

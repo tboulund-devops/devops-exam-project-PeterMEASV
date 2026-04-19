@@ -313,6 +313,7 @@ function FriendCollection() {
                                                 key={movie.id}
                                                 movie={movie}
                                                 userId={userId}
+                                                friendId={friendId}
                                                 myMovieIds={myMovieIds}
                                                 onAdded={id => setMyMovieIds(prev => new Set([...prev, id]))}
                                             />
@@ -346,6 +347,7 @@ function FriendCollection() {
                                                 movie={movie}
                                                 showSeenBadge
                                                 userId={userId}
+                                                friendId={friendId}
                                                 myMovieIds={myMovieIds}
                                                 onAdded={id => setMyMovieIds(prev => new Set([...prev, id]))}
                                             />
@@ -367,13 +369,31 @@ type FriendMovieCardProps = {
     movie: MovieWithSeen;
     showSeenBadge?: boolean;
     userId?: string;
+    friendId?: string;
     myMovieIds?: Set<string>;
     onAdded?: (movieId: string) => void;
 };
 
-function FriendMovieCard({ movie, showSeenBadge, userId, myMovieIds, onAdded }: FriendMovieCardProps) {
+function FriendMovieCard({ movie, showSeenBadge, userId, friendId, myMovieIds, onAdded }: FriendMovieCardProps) {
     const [adding, setAdding] = useState(false);
     const alreadyOwned = movie.id ? myMovieIds?.has(movie.id) : true;
+    const [popup, setPopup] = useState(false);
+    const [friendRating, setFriendRating] = useState<{ rating?: number | null; comment?: string | null } | null>(null);
+
+    const hasRating = !!movie.rating;
+
+    const handleCardClick = async () => {
+        if (!friendId || !movie.id || !hasRating) return;
+        setPopup(true);
+        if (friendRating === null) {
+            try {
+                const dto = await movieClient.getMovieRatingByUser(friendId, movie.id);
+                setFriendRating({ rating: dto?.rating, comment: dto?.comment });
+            } catch {
+                setFriendRating({});
+            }
+        }
+    };
 
     const handleAdd = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -388,15 +408,72 @@ function FriendMovieCard({ movie, showSeenBadge, userId, myMovieIds, onAdded }: 
     };
 
     return (
+        <>
+        {popup && (
+            <div
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}
+                onClick={() => setPopup(false)}
+            >
+                <div
+                    style={{ position: "relative", background: "#141414", borderRadius: "14px", overflow: "hidden", maxWidth: "560px", width: "100%", display: "flex", boxShadow: "0 20px 60px rgba(0,0,0,0.8)" }}
+                    onClick={e => e.stopPropagation()}
+                >
+                    {/* Poster column */}
+                    <div style={{ width: "180px", flexShrink: 0, position: "relative" }}>
+                        {movie.photo
+                            ? <img src={movie.photo} alt={movie.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                            : <div style={{ width: "100%", height: "100%", minHeight: "220px", background: "#2a2a2a", display: "flex", alignItems: "center", justifyContent: "center", color: "#555", fontSize: "2rem" }}>🎬</div>
+                        }
+                        {/* Gradient overlay on right edge of poster */}
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 60%, #141414 100%)" }} />
+                    </div>
+
+                    {/* Content column */}
+                    <div style={{ flex: 1, padding: "20px 20px 20px 12px", display: "flex", flexDirection: "column", gap: "10px", minWidth: 0 }}>
+                        {/* Title + close */}
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "8px" }}>
+                            <div>
+                                <div style={{ fontWeight: "bold", fontSize: "1.05rem", color: "#fff", lineHeight: 1.3 }}>{movie.title}</div>
+                                {movie.year && <div style={{ color: "#888", fontSize: "0.82rem", marginTop: "2px" }}>{movie.year}</div>}
+                            </div>
+                            <button onClick={() => setPopup(false)} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: "1.3rem", lineHeight: 1, flexShrink: 0, padding: "0 2px" }}>×</button>
+                        </div>
+
+                        <div style={{ width: "40px", height: "2px", background: "#333", borderRadius: "2px" }} />
+
+                        {friendRating === null ? (
+                            <p style={{ color: "#aaa", margin: 0, fontSize: "0.88rem" }}>Loading...</p>
+                        ) : (friendRating.rating == null && !friendRating.comment) ? (
+                            <p style={{ color: "#555", margin: 0, fontSize: "0.88rem" }}>No rating or comment left yet.</p>
+                        ) : (
+                            <>
+                                {friendRating.rating != null && (
+                                    <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255,193,7,0.12)", border: "1px solid rgba(255,193,7,0.25)", borderRadius: "8px", padding: "6px 12px", width: "fit-content" }}>
+                                        <span style={{ fontSize: "0.95rem" }}>⭐</span>
+                                        <span style={{ color: "#ffc107", fontWeight: "bold", fontSize: "1rem" }}>{friendRating.rating}</span>
+                                        <span style={{ color: "#888", fontSize: "0.8rem" }}>/10</span>
+                                    </div>
+                                )}
+                                {friendRating.comment && (
+                                    <p style={{ margin: 0, color: "#bbb", fontSize: "0.88rem", lineHeight: 1.65, fontStyle: "italic" }}>"{friendRating.comment}"</p>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
         <div
+            onClick={handleCardClick}
             style={{
                 position: "relative",
                 display: "flex",
                 flexDirection: "column",
                 gap: "8px",
+                cursor: hasRating ? "pointer" : "default",
                 transition: "transform 0.2s ease",
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseEnter={(e) => { if (hasRating) e.currentTarget.style.transform = "scale(1.05)"; }}
             onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
         >
             {movie.photo
@@ -507,6 +584,7 @@ function FriendMovieCard({ movie, showSeenBadge, userId, myMovieIds, onAdded }: 
                 )}
             </div>
         </div>
+        </>
     );
 }
 

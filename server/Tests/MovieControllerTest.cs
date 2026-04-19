@@ -218,7 +218,7 @@ public class MovieControllerTest
         var userId = "user1";
         var movieId = "movie1";
         var rating = 8;
-        _mockService.Setup(s => s.UpdateMovieRating(userId, movieId, rating)).Returns(Task.CompletedTask);
+        _mockService.Setup(s => s.UpdateMovieRating(userId, movieId, rating, It.IsAny<string?>())).Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.UpdateMovieRating(userId, movieId, rating);
@@ -234,7 +234,7 @@ public class MovieControllerTest
         var userId = "user1";
         var movieId = "movie1";
         var rating = 11;
-        _mockService.Setup(s => s.UpdateMovieRating(userId, movieId, rating))
+        _mockService.Setup(s => s.UpdateMovieRating(userId, movieId, rating, It.IsAny<string?>()))
             .ThrowsAsync(new ArgumentException("Rating must be between 1 and 10"));
 
         // Act
@@ -246,20 +246,106 @@ public class MovieControllerTest
     }
 
     [Fact]
-    public async Task GetMovieRatingByUser_ShouldReturnOk_WithRating_WhenServiceSucceeds()
+    public async Task UpdateMovieRating_WithComment_ShouldReturnOk()
     {
         // Arrange
         var userId = "user1";
         var movieId = "movie1";
-        var rating = 7;
-        _mockService.Setup(s => s.GetMovieRatingByUser(userId, movieId)).ReturnsAsync(rating);
+        var rating = 8;
+        var comment = "Great film!";
+        _mockService.Setup(s => s.UpdateMovieRating(userId, movieId, rating, comment)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.UpdateMovieRating(userId, movieId, rating, comment);
+
+        // Assert
+        Assert.IsType<OkResult>(result);
+    }
+
+    [Fact]
+    public async Task GetMovieRatingByUser_ShouldReturnOk_WithRatingDto_WhenServiceSucceeds()
+    {
+        // Arrange
+        var userId = "user1";
+        var movieId = "movie1";
+        var ratingDto = new ratingDto(7, "Loved it");
+        _mockService.Setup(s => s.GetMovieRatingByUser(userId, movieId)).ReturnsAsync(ratingDto);
 
         // Act
         var result = await _controller.GetMovieRatingByUser(userId, movieId);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        Assert.Equal(rating, okResult.Value);
+        var returned = Assert.IsType<ratingDto>(okResult.Value);
+        Assert.Equal(7, returned.rating);
+        Assert.Equal("Loved it", returned.comment);
+    }
+
+    [Fact]
+    public async Task GetMovieGenres_ShouldReturnOk_WithGenres_WhenServiceSucceeds()
+    {
+        // Arrange
+        var movieId = "movie1";
+        var genres = new List<Genre>
+        {
+            new Genre { Id = "g1", Name = "Action" },
+            new Genre { Id = "g2", Name = "Drama" }
+        };
+        _mockService.Setup(s => s.GetMovieGenres(movieId)).ReturnsAsync(genres);
+
+        // Act
+        var result = await _controller.GetMovieGenres(movieId);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returned = Assert.IsType<List<Genre>>(okResult.Value);
+        Assert.Equal(2, returned.Count);
+    }
+
+    [Fact]
+    public async Task GetMovieGenres_ShouldReturnBadRequest_WhenServiceThrows()
+    {
+        // Arrange
+        var movieId = "nonexistent";
+        _mockService.Setup(s => s.GetMovieGenres(movieId)).ThrowsAsync(new Exception("Error"));
+
+        // Act
+        var result = await _controller.GetMovieGenres(movieId);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("Could not fetch genres for movie", badRequest.Value);
+    }
+
+    [Fact]
+    public async Task UpdateMovieGenres_ShouldReturnOk_WhenServiceSucceeds()
+    {
+        // Arrange
+        var movieId = "movie1";
+        var genres = new List<Genre> { new Genre { Id = "g1", Name = "Action" } };
+        _mockService.Setup(s => s.UpdateMovieGenres(movieId, genres)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.UpdateMovieGenres(movieId, genres);
+
+        // Assert
+        Assert.IsType<OkResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateMovieGenres_ShouldReturnBadRequest_WhenServiceThrows()
+    {
+        // Arrange
+        var movieId = "movie1";
+        var genres = new List<Genre>();
+        _mockService.Setup(s => s.UpdateMovieGenres(movieId, genres)).ThrowsAsync(new Exception("Error"));
+
+        // Act
+        var result = await _controller.UpdateMovieGenres(movieId, genres);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Could not update genres for movie", badRequest.Value);
     }
 
     [Fact]

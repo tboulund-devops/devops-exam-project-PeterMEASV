@@ -22,7 +22,7 @@ type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null; ge
 
 type CreateMovieModalProps = {
     onClose: () => void;
-    onCreated: (movie: Movie, rating?: number) => void;
+    onCreated: (movie: Movie, rating?: number, comment?: string) => void;
     prefillTitle?: string;
 };
 
@@ -33,6 +33,7 @@ function CreateMovieModal({ onClose, onCreated, prefillTitle = "" }: CreateMovie
     const [description, setDescription] = useState("");
     const [starring, setStarring] = useState("");
     const [rating, setRating] = useState("");
+    const [comment, setComment] = useState("");
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -126,6 +127,7 @@ function CreateMovieModal({ onClose, onCreated, prefillTitle = "" }: CreateMovie
 
             let url = `${finalUrl}/Movie/CreateMovie?userID=${encodeURIComponent(userId)}`;
             if (rating) url += `&rating=${encodeURIComponent(rating)}`;
+            if (comment.trim()) url += `&comment=${encodeURIComponent(comment.trim())}`;
             selectedGenres.forEach((g, i) => {
                 if (g.id) url += `&genres[${i}].id=${encodeURIComponent(g.id)}`;
                 if (g.name) url += `&genres[${i}].name=${encodeURIComponent(g.name)}`;
@@ -139,7 +141,7 @@ function CreateMovieModal({ onClose, onCreated, prefillTitle = "" }: CreateMovie
             });
             if (!response.ok) throw new Error("Failed");
             const created: Movie = await response.json();
-            onCreated(created, rating ? parseInt(rating) : undefined);
+            onCreated(created, rating ? parseInt(rating) : undefined, comment.trim() || undefined);
         } catch {
             setError("Could not create movie. Please try again.");
         } finally {
@@ -199,6 +201,13 @@ function CreateMovieModal({ onClose, onCreated, prefillTitle = "" }: CreateMovie
                         value={rating}
                         onChange={e => setRating(e.target.value)}
                         style={inputStyle}
+                    />
+                    <textarea
+                        placeholder="Comment (optional)"
+                        value={comment}
+                        onChange={e => setComment(e.target.value)}
+                        rows={3}
+                        style={{ ...inputStyle, resize: "vertical" }}
                     />
 
                     {/* Genre input */}
@@ -411,7 +420,7 @@ function MovieCard({ movie, onClick, showSeenBadge }: MovieCardProps) {
 
 type SearchOrCreateModalProps = {
     onClose: () => void;
-    onCreated: (movie: Movie, rating?: number) => void;
+    onCreated: (movie: Movie, rating?: number, comment?: string) => void;
     myMovieIds: Set<string>;
     onAdded: (movie: Movie) => void;
 };
@@ -610,8 +619,11 @@ function Dashboard() {
         genreClient.getAllGenres().then(setAllGenres).catch(() => {});
     }, []);
 
-    const handleCreated = async (movie: Movie, rating?: number) => {
+    const handleCreated = async (movie: Movie, rating?: number, comment?: string) => {
         const genres = await movieClient.getMovieGenres(movie.id).catch(() => []);
+        if (rating && comment && movie.id && userId) {
+            await movieClient.updateMovieRating(userId, movie.id, rating, comment).catch(() => {});
+        }
         setMovies(prev => [...prev, { ...movie, seen: false, genres, rating: rating ?? null }]);
         setSearchOpen(false);
     };

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useAtomValue } from "jotai";
-import { genreClient, movieClient } from "./baseUrl.ts";
-import type { Genre, Movie } from "./generated-ts-client.ts";
+import { genreClient, movieClient, userClient } from "./baseUrl.ts";
+import type { Genre, Movie, RatingDto, User } from "./generated-ts-client.ts";
 import { tokenAtom, userInfoAtom } from "./Token.tsx";
 
 function getUserIdFromToken(token: string | null): string | null {
@@ -33,6 +33,7 @@ function MovieDetails() {
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const [movieRating, setMovieRating] = useState<number | null>(null);
+    const [comment, setComment] = useState("");
     const [isSeen, setIsSeen] = useState<boolean>(false);
     const [updatingSeen, setUpdatingSeen] = useState(false);
 
@@ -40,6 +41,9 @@ function MovieDetails() {
     const [allGenres, setAllGenres] = useState<Genre[]>([]);
     const [genreInput, setGenreInput] = useState("");
     const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
+
+    type FriendComment = { friend: User; rating: RatingDto };
+    const [friendComments, setFriendComments] = useState<FriendComment[]>([]);
     
     // Store the return tab from navigation state
     const returnTab = location.state?.returnTab || "watchlist";
@@ -54,15 +58,33 @@ function MovieDetails() {
         setRating("");
         setIsSeen(movie.seen ?? false);
         
-        movieClient.getMovieRatingByUser(userId ?? undefined, movie.id).then(rating => {
-            setMovieRating(rating);
-            setRating(String(rating ?? ""));
+        movieClient.getMovieRatingByUser(userId ?? undefined, movie.id).then(dto => {
+            setMovieRating(dto?.rating ?? null);
+            setRating(String(dto?.rating ?? ""));
+            setComment(dto?.comment ?? "");
         }).catch(() => {
             setMovieRating(null);
+            setComment("");
         });
 
         movieClient.getMovieGenres(movie.id).then(setSelectedGenres).catch(() => {});
         genreClient.getAllGenres().then(setAllGenres).catch(() => {});
+
+        if (userId && movie.id) {
+            userClient.getAllFriendsForUser(userId).then(async friends => {
+                const results = await Promise.all(
+                    friends.map(async friend => {
+                        try {
+                            const dto = await movieClient.getMovieRatingByUser(friend.id, movie.id);
+                            return dto?.comment ? { friend, rating: dto } : null;
+                        } catch {
+                            return null;
+                        }
+                    })
+                );
+                setFriendComments(results.filter(Boolean) as FriendComment[]);
+            }).catch(() => {});
+        }
     }, [movie?.id, userId]);
 
     if (!movie) {
@@ -128,7 +150,7 @@ function MovieDetails() {
         setError(null);
         try {
             if (rating && userId && movie.id) {
-                await movieClient.updateMovieRating(userId ?? undefined, movie.id, parseInt(rating));
+                await movieClient.updateMovieRating(userId ?? undefined, movie.id, parseInt(rating), comment || undefined);
                 setMovieRating(parseInt(rating));
             }
 
@@ -280,8 +302,9 @@ function MovieDetails() {
                     <button onClick={removeMovieFromUser} style={{ ...secondaryButtonStyle, color: "#e50914" }}>Remove from collection</button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSave} style={{ flex: 1, minWidth: "280px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                {/* Form + Friends comments */}
+                <div style={{ flex: 1, minWidth: "280px", display: "flex", flexDirection: "column", gap: "24px" }}>
+                <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                         <label style={labelStyle}>Title</label>
                         <input value={title} onChange={e => setTitle(e.target.value)} required style={inputStyle} />
@@ -363,6 +386,17 @@ function MovieDetails() {
                     </div>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <label style={labelStyle}>Comment</label>
+                        <textarea
+                            value={comment}
+                            onChange={e => setComment(e.target.value)}
+                            placeholder="Write a comment about this movie..."
+                            rows={3}
+                            style={{ ...inputStyle, resize: "vertical" }}
+                        />
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                         <label style={labelStyle}>Description</label>
                         <textarea value={description} onChange={e => setDescription(e.target.value)} rows={5} style={{ ...inputStyle, resize: "vertical" }} />
                     </div>
@@ -374,6 +408,39 @@ function MovieDetails() {
                         {saving ? "Saving..." : "Save changes"}
                     </button>
                 </form>
+
+                {/* Friends' comments */}
+                {friendComments.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <span style={labelStyle}>Friends' thoughts</span>
+                        {friendComments.map(({ friend, rating }) => (
+                            <div key={friend.id} style={{
+                                background: "#1a1a1a", borderRadius: "8px",
+                                padding: "12px 14px", display: "flex", flexDirection: "column", gap: "6px",
+                                border: "1px solid #2a2a2a",
+                            }}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <span style={{ fontWeight: "bold", fontSize: "0.9rem" }}>
+                                        {friend.name ?? friend.email}
+                                    </span>
+                                    {rating.rating && (
+                                        <span style={{
+                                            background: "rgba(255,193,7,0.15)", color: "#ffc107",
+                                            borderRadius: "6px", padding: "2px 8px",
+                                            fontSize: "0.85rem", fontWeight: "bold",
+                                        }}>
+                                            ⭐ {rating.rating}/10
+                                        </span>
+                                    )}
+                                </div>
+                                <span style={{ fontSize: "0.88rem", color: "#ccc", lineHeight: 1.5 }}>
+                                    {rating.comment}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                </div>
             </div>
         </div>
     );

@@ -87,7 +87,7 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         await context.SaveChangesAsync();
     }
     
-    public async Task UpdateMovieRating(string userId, string movieId, int rating)
+    public async Task UpdateMovieRating(string userId, string movieId, int rating, string? comment)
     {
         if (rating < 1 || rating > 10)
         {
@@ -103,19 +103,20 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         }
 
         userMovie.Rating = rating;
+        userMovie.Comment = comment;
         context.Update(userMovie);
         await context.SaveChangesAsync();
     }
 
-    public Task<int?> GetMovieRatingByUser(string userId, string movieId)
+    public Task<ratingDto?> GetMovieRatingByUser(string userId, string movieId)
     {
         UsersMovie? userMovie = context.UsersMovies.FirstOrDefault(um => um.UserId == userId && um.MovieId == movieId);
         if (userMovie == null)
         {
             throw new KeyNotFoundException(UserMovieNotFound);
         }
-        
-        return Task.FromResult(userMovie.Rating);
+
+        return Task.FromResult<ratingDto?>(new ratingDto(userMovie.Rating, userMovie.Comment));
     }
 
 

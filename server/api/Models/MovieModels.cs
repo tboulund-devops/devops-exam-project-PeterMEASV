@@ -3,3 +3,5 @@
 namespace api.Models;
 
 public record CreateMovieDto([Required]string Title, [Required]int Year, string? Description, string? Starring, IFormFile? Photo);
+
+public record ratingDto(int? rating, string? comment);

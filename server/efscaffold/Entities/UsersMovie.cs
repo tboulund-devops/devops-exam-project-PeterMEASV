@@ -12,4 +12,6 @@ public partial class UsersMovie
     public int? Rating { get; set; }
 
     public bool? Seen { get; set; }
+
+    public string? Comment { get; set; }
 }

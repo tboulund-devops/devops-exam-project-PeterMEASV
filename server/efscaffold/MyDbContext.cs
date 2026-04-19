@@ -96,6 +96,7 @@ public partial class MyDbContext : DbContext
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.MovieId).HasColumnName("movie_id");
+            entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.Rating).HasColumnName("rating");
             entity.Property(e => e.Seen)
                 .HasDefaultValue(false)

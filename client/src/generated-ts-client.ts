@@ -373,7 +373,7 @@ export class MovieClient {
         return Promise.resolve<Movie>(null as any);
     }
 
-    updateMovieRating(userId: string | undefined, movieId: string | undefined, rating: number | undefined): Promise<FileResponse> {
+    updateMovieRating(userId: string | undefined, movieId: string | undefined, rating: number | undefined, comment: string | null | undefined): Promise<FileResponse> {
         let url_ = this.baseUrl + "/Movie/UpdateMovieRating?";
         if (userId === null)
             throw new globalThis.Error("The parameter 'userId' cannot be null.");
@@ -387,6 +387,8 @@ export class MovieClient {
             throw new globalThis.Error("The parameter 'rating' cannot be null.");
         else if (rating !== undefined)
             url_ += "rating=" + encodeURIComponent("" + rating) + "&";
+        if (comment !== undefined && comment !== null)
+            url_ += "comment=" + encodeURIComponent("" + comment) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -423,7 +425,7 @@ export class MovieClient {
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    getMovieRatingByUser(userId: string | undefined, movieId: string | undefined): Promise<number> {
+    getMovieRatingByUser(userId: string | undefined, movieId: string | undefined): Promise<RatingDto> {
         let url_ = this.baseUrl + "/Movie/GetMovieRatingByUser?";
         if (userId === null)
             throw new globalThis.Error("The parameter 'userId' cannot be null.");
@@ -447,13 +449,13 @@ export class MovieClient {
         });
     }
 
-    protected processGetMovieRatingByUser(response: Response): Promise<number> {
+    protected processGetMovieRatingByUser(response: Response): Promise<RatingDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as number;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as RatingDto;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -461,7 +463,7 @@ export class MovieClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<number>(null as any);
+        return Promise.resolve<RatingDto>(null as any);
     }
 
     editMovie(movie: Movie): Promise<Movie> {
@@ -949,6 +951,11 @@ export interface MovieWithSeenDto {
     photo?: string | undefined;
     seen?: boolean | undefined;
     rating?: number | undefined;
+}
+
+export interface RatingDto {
+    rating?: number | undefined;
+    comment?: string | undefined;
 }
 
 export interface CreateUserDto {
