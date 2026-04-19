@@ -10,6 +10,7 @@ namespace api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class AuthController(IAuthService authService, ILogger<AuthController> logger, ITokenService tokenService) : ControllerBase
 {
     [HttpPost("login")]

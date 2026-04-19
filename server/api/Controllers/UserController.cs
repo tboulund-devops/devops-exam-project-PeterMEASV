@@ -9,6 +9,7 @@ namespace api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class UserController(IUserService userService, ILogger<UserController> logger) : ControllerBase
 {
     [HttpPost("create")]

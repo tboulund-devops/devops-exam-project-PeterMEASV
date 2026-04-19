@@ -1,16 +1,18 @@
 ﻿using api.Services.Interfaces;
 using efscaffold;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[AllowAnonymous]
 public class GenreController(IGenreService genreService) : ControllerBase
 {
     [HttpPost]
     [Route(nameof(CreateGenre))]
-    public async Task<ActionResult<Genre>> CreateGenre(string genreName)
+    public async Task<ActionResult<Genre>> CreateGenre([FromQuery] string genreName)
     {
         try
         {
@@ -39,7 +41,7 @@ public class GenreController(IGenreService genreService) : ControllerBase
 
     [HttpDelete]
     [Route(nameof(DeleteGenre))]
-    public async Task<ActionResult> DeleteGenre(string genreId)
+    public async Task<ActionResult> DeleteGenre([FromQuery] string genreId)
     {
         try
         {

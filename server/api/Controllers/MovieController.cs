@@ -1,12 +1,14 @@
 ﻿using api.Models;
 using api.Services.Interfaces;
 using efscaffold;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[AllowAnonymous]
 public class MovieController(IMovieService movieService) : ControllerBase
 {
 
