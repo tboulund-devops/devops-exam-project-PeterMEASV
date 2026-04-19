@@ -419,6 +419,7 @@ export function LoginPage() {
 
                             <input
                                 type="email"
+                                id="email"
                                 placeholder="Email address"
                                 style={{
                                     width: '100%',
@@ -441,6 +442,7 @@ export function LoginPage() {
 
                             <input
                                 type="password"
+                                id={"password"}
                                 placeholder="Password"
                                 style={{
                                     width: '100%',
