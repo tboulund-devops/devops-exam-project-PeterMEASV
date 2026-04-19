@@ -31,9 +31,9 @@ Simple three-layer architecture splitting the application into Controllers, Serv
 
 ## Features
 
-- **Authentication:** Secure login and user profile management.
-- **Movie CRUD:** Full Create, Read, Update, and Delete functionality for movies.
-- **Rating System:** Ability for users to rate films and track their preferences.
+- **Authentication:** Secure login, user registration, and profile management.
+- **Movie CRUD:** Full Create, Read, Update, and Delete functionality for movies, with optimized storage for efficiency.
+- **Rating System:** Ability for users to rate films, add comments to ratings, and track their preferences.
 - **Statistics:** Recap and statistics of user ratings (sharable with others).
 - **Watchlist & Seen:** Separate your collection into movies you want to watch and movies you've already seen.
 - **Friends System:** Add friends to see their collections and ratings, and copy movies to your own watchlist.
@@ -131,8 +131,10 @@ DONE!
 
 ### Week 15
 **Feature 1:** Simple User Creation Implementation
+DONE!
 
 **Feature 2:** Login Screen overhaul
+DONE!
 
 ### Week 16
 **Feature 1:** IMDB Api implementation
