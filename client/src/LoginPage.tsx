@@ -191,6 +191,7 @@ export function LoginPage() {
 
                 <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <input
+                        id="email"
                         type="email"
                         placeholder="Email address"
                         style={{
@@ -213,6 +214,7 @@ export function LoginPage() {
                     />
 
                     <input
+                        id="password"
                         type="password"
                         placeholder="Password"
                         style={{
