@@ -378,7 +378,7 @@ export function LoginPage() {
                         <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <input
                                 type="text"
-                                placeholder="User ID (optional)"
+                                placeholder="User ID"
                                 style={{
                                     width: '100%',
                                     padding: '15px 20px',
