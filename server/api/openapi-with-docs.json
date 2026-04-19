@@ -485,6 +485,39 @@
         }
       }
     },
+    "/Movie/SearchMovies": {
+      "get": {
+        "tags": [
+          "Movie"
+        ],
+        "operationId": "Movie_SearchMovies",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Movie"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Movie/GetMovieGenres": {
       "get": {
         "tags": [

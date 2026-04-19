@@ -857,4 +857,72 @@ public class MovieServiceTest(IMovieService movieService, MyDbContext dbContext)
         Assert.True(movieDto.Seen);
         Assert.Equal("Rated Movie", movieDto.Title);
     }
+
+    [Fact]
+    public async Task SearchMovies_ShouldReturnMatchingMovies_WhenQueryMatchesTitle()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        dbContext.Movies.Add(new Movie { Id = "1", Title = "Inception", Year = 2010, Description = "Desc", Starring = "Actor" });
+        dbContext.Movies.Add(new Movie { Id = "2", Title = "Interstellar", Year = 2014, Description = "Desc", Starring = "Actor" });
+        dbContext.Movies.Add(new Movie { Id = "3", Title = "The Dark Knight", Year = 2008, Description = "Desc", Starring = "Actor" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.SearchMovies("in");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, m => m.Title == "Inception");
+        Assert.Contains(result, m => m.Title == "Interstellar");
+    }
+
+    [Fact]
+    public async Task SearchMovies_ShouldBeCaseInsensitive()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        dbContext.Movies.Add(new Movie { Id = "1", Title = "Inception", Year = 2010, Description = "Desc", Starring = "Actor" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.SearchMovies("INCEPTION");
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal("Inception", result[0].Title);
+    }
+
+    [Fact]
+    public async Task SearchMovies_ShouldReturnEmptyList_WhenNoMatchesFound()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        dbContext.Movies.Add(new Movie { Id = "1", Title = "Inception", Year = 2010, Description = "Desc", Starring = "Actor" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.SearchMovies("zzznomatch");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task SearchMovies_ShouldReturnAtMostTenResults()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        for (int i = 1; i <= 15; i++)
+            dbContext.Movies.Add(new Movie { Id = $"{i}", Title = $"Movie {i}", Year = 2000 + i, Description = "Desc", Starring = "Actor" });
+        await dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await movieService.SearchMovies("movie");
+
+        // Assert
+        Assert.Equal(10, result.Count);
+    }
 }

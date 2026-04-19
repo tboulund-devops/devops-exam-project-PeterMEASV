@@ -380,9 +380,56 @@ public class MovieControllerTest
         Assert.Equal("Could not add movie to seen", badRequest.Value);
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // GetMoviesByUser with MovieWithSeenDto Tests
-    // ══════════════════════════════════════════════════════════════════════════
+    [Fact]
+    public async Task SearchMovies_ShouldReturnOk_WithMatchingMovies_WhenServiceSucceeds()
+    {
+        // Arrange
+        var query = "inception";
+        var movies = new List<Movie>
+        {
+            new Movie { Id = "1", Title = "Inception", Year = 2010 }
+        };
+        _mockService.Setup(s => s.SearchMovies(query)).ReturnsAsync(movies);
+
+        // Act
+        var result = await _controller.SearchMovies(query);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returned = Assert.IsType<List<Movie>>(okResult.Value);
+        Assert.Single(returned);
+    }
+
+    [Fact]
+    public async Task SearchMovies_ShouldReturnOk_WithEmptyList_WhenNoMatchesFound()
+    {
+        // Arrange
+        var query = "zzznomatch";
+        _mockService.Setup(s => s.SearchMovies(query)).ReturnsAsync(new List<Movie>());
+
+        // Act
+        var result = await _controller.SearchMovies(query);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returned = Assert.IsType<List<Movie>>(okResult.Value);
+        Assert.Empty(returned);
+    }
+
+    [Fact]
+    public async Task SearchMovies_ShouldReturnBadRequest_WhenServiceThrows()
+    {
+        // Arrange
+        var query = "inception";
+        _mockService.Setup(s => s.SearchMovies(query)).ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _controller.SearchMovies(query);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("Could not search movies", badRequest.Value);
+    }
 
     [Fact]
     public async Task GetMoviesByUser_ShouldReturnMoviesWithSeenDto()

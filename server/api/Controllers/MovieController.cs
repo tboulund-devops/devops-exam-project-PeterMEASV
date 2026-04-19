@@ -128,6 +128,20 @@ public class MovieController(IMovieService movieService) : ControllerBase
     }
     
     [HttpGet]
+    [Route(nameof(SearchMovies))]
+    public async Task<ActionResult<List<Movie>>> SearchMovies([FromQuery] string query)
+    {
+        try
+        {
+            return Ok(await movieService.SearchMovies(query));
+        }
+        catch (Exception)
+        {
+            return BadRequest("Could not search movies");
+        }
+    }
+
+    [HttpGet]
     [Route(nameof(GetMovieGenres))]
     public async Task<ActionResult<List<Genre>>> GetMovieGenres([FromQuery] string movieId)
     {

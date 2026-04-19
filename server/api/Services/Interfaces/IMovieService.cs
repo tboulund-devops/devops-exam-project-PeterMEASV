@@ -16,4 +16,5 @@ public interface IMovieService
     Task<Movie?> AddMovieToSeen(string movieId, string userId, Boolean seen);
     Task<List<Genre>> GetMovieGenres(string movieId);
     Task UpdateMovieGenres(string movieId, List<Genre> genres);
+    Task<List<Movie>> SearchMovies(string query);
 }

@@ -218,6 +218,15 @@ public class MovieService(MyDbContext context, IStorageService storageService) :
         return movie;
     }
 
+    public Task<List<Movie>> SearchMovies(string query)
+    {
+        var q = query.Trim().ToLower();
+        return context.Movies
+            .Where(m => m.Title.ToLower().Contains(q))
+            .Take(10)
+            .ToListAsync();
+    }
+
     public Task<List<Genre>> GetMovieGenres(string movieId)
     {
         var genreIds = context.MoviesGenres

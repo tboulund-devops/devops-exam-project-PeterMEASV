@@ -23,11 +23,12 @@ type MovieWithSeen = Movie & { seen?: boolean | null; rating?: number | null; ge
 type CreateMovieModalProps = {
     onClose: () => void;
     onCreated: (movie: Movie, rating?: number) => void;
+    prefillTitle?: string;
 };
 
-function CreateMovieModal({ onClose, onCreated }: CreateMovieModalProps) {
+function CreateMovieModal({ onClose, onCreated, prefillTitle = "" }: CreateMovieModalProps) {
     const userInfo = useAtomValue(userInfoAtom);
-    const [title, setTitle] = useState("");
+    const [title, setTitle] = useState(prefillTitle);
     const [year, setYear] = useState("");
     const [description, setDescription] = useState("");
     const [starring, setStarring] = useState("");
@@ -406,6 +407,148 @@ function MovieCard({ movie, onClick, showSeenBadge }: MovieCardProps) {
     );
 }
 
+// ── SearchOrCreateModal ───────────────────────────────────────────────────────
+
+type SearchOrCreateModalProps = {
+    onClose: () => void;
+    onCreated: (movie: Movie, rating?: number) => void;
+    myMovieIds: Set<string>;
+    onAdded: (movie: Movie) => void;
+};
+
+function SearchOrCreateModal({ onClose, onCreated, myMovieIds, onAdded }: SearchOrCreateModalProps) {
+    const userInfo = useAtomValue(userInfoAtom);
+    const [query, setQuery] = useState("");
+    const [results, setResults] = useState<Movie[]>([]);
+    const [searching, setSearching] = useState(false);
+    const [addingId, setAddingId] = useState<string | null>(null);
+    const [showCreate, setShowCreate] = useState(false);
+
+    useEffect(() => {
+        if (!query.trim()) { setResults([]); return; }
+        const timer = setTimeout(async () => {
+            setSearching(true);
+            try {
+                const res = await movieClient.searchMovies(query.trim());
+                setResults(res);
+            } catch {
+                setResults([]);
+            } finally {
+                setSearching(false);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [query]);
+
+    const handleAdd = async (movie: Movie) => {
+        if (!userInfo?.id || !movie.id) return;
+        setAddingId(movie.id);
+        try {
+            await movieClient.addMovieToUser(movie.id, userInfo.id);
+            onAdded(movie);
+        } finally {
+            setAddingId(null);
+        }
+    };
+
+    if (showCreate) {
+        return (
+            <CreateMovieModal
+                onClose={onClose}
+                onCreated={onCreated}
+                prefillTitle={query}
+            />
+        );
+    }
+
+    return (
+        <div style={{
+            position: "fixed", inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 100,
+        }} onClick={onClose}>
+            <div style={{
+                background: "#1a1a1a", borderRadius: "10px",
+                padding: "28px", width: "100%", maxWidth: "480px",
+                display: "flex", flexDirection: "column", gap: "16px",
+            }} onClick={e => e.stopPropagation()}>
+
+                <h2 style={{ margin: 0 }}>Add movie</h2>
+
+                <input
+                    autoFocus
+                    placeholder="Search by title..."
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    style={{
+                        padding: "9px 12px", borderRadius: "6px",
+                        border: "1px solid #333", background: "#111",
+                        color: "#fff", fontSize: "0.95rem", width: "100%",
+                        boxSizing: "border-box",
+                    }}
+                />
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "340px", overflowY: "auto" }}>
+                    {searching && <p style={{ color: "#aaa", margin: "8px 0", fontSize: "0.9rem" }}>Searching...</p>}
+
+                    {!searching && results.map(movie => {
+                        const owned = myMovieIds.has(movie.id ?? "");
+                        return (
+                            <div key={movie.id} style={{
+                                display: "flex", alignItems: "center", gap: "12px",
+                                padding: "8px", borderRadius: "6px", background: "#222",
+                            }}>
+                                {movie.photo
+                                    ? <img src={movie.photo} alt={movie.title} style={{ width: "36px", height: "54px", objectFit: "cover", borderRadius: "4px", flexShrink: 0 }} />
+                                    : <div style={{ width: "36px", height: "54px", background: "#333", borderRadius: "4px", flexShrink: 0 }} />
+                                }
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: "bold", fontSize: "0.9rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{movie.title}</div>
+                                    <div style={{ fontSize: "0.8rem", color: "#aaa" }}>{movie.year}</div>
+                                </div>
+                                {owned
+                                    ? <span style={{ fontSize: "0.8rem", color: "#555", whiteSpace: "nowrap" }}>In collection</span>
+                                    : <button
+                                        onClick={() => handleAdd(movie)}
+                                        disabled={addingId === movie.id}
+                                        style={{
+                                            padding: "5px 12px", borderRadius: "6px",
+                                            background: "#e50914", color: "#fff",
+                                            border: "none", cursor: "pointer",
+                                            fontSize: "0.85rem", whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        {addingId === movie.id ? "Adding..." : "+ Add"}
+                                    </button>
+                                }
+                            </div>
+                        );
+                    })}
+
+                    {query.trim().length >= 3 && (
+                        <div
+                            onClick={() => setShowCreate(true)}
+                            style={{
+                                display: "flex", alignItems: "center", gap: "10px",
+                                padding: "10px 8px", borderRadius: "6px",
+                                cursor: "pointer", color: "#aaa", fontSize: "0.9rem",
+                                borderTop: results.length > 0 ? "1px solid #333" : "none",
+                                marginTop: results.length > 0 ? "4px" : 0,
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = "#222")}
+                            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                        >
+                            <span style={{ fontSize: "1.2rem", color: "#e50914" }}>＋</span>
+                            <span>Create new entry for <strong style={{ color: "#fff" }}>"{query.trim()}"</strong></span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 type TabType = "watchlist" | "seen";
@@ -416,7 +559,8 @@ function Dashboard() {
     const [movies, setMovies] = useState<MovieWithSeen[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const myMovieIds = new Set(movies.map(m => m.id ?? "").filter(Boolean));
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -469,7 +613,13 @@ function Dashboard() {
     const handleCreated = async (movie: Movie, rating?: number) => {
         const genres = await movieClient.getMovieGenres(movie.id).catch(() => []);
         setMovies(prev => [...prev, { ...movie, seen: false, genres, rating: rating ?? null }]);
-        setModalOpen(false);
+        setSearchOpen(false);
+    };
+
+    const handleAdded = async (movie: Movie) => {
+        const genres = await movieClient.getMovieGenres(movie.id).catch(() => []);
+        setMovies(prev => [...prev, { ...movie, seen: false, genres }]);
+        setSearchOpen(false);
     };
 
     const applyFiltersAndSort = (list: MovieWithSeen[]) => {
@@ -793,7 +943,7 @@ function Dashboard() {
 
             {/* Floating Add Button */}
             <button
-                onClick={() => setModalOpen(true)}
+                onClick={() => setSearchOpen(true)}
                 style={{
                     position: "fixed", bottom: "28px", right: "28px",
                     width: "56px", height: "56px", borderRadius: "50%",
@@ -811,10 +961,12 @@ function Dashboard() {
                 +
             </button>
 
-            {modalOpen && (
-                <CreateMovieModal
-                    onClose={() => setModalOpen(false)}
+            {searchOpen && (
+                <SearchOrCreateModal
+                    onClose={() => setSearchOpen(false)}
                     onCreated={handleCreated}
+                    myMovieIds={myMovieIds}
+                    onAdded={handleAdded}
                 />
             )}
         </div>
