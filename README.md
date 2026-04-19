@@ -74,33 +74,39 @@ DONE!
 
 ### Week 6
 **Feature 1:** Movie CRUD implementation
+DONE!
 
 **Feature 2:** Early database connection
 DONE!
 
 ### Week 7
 *Winter vacation - nothing planned.*
+DONE!
 
 ### Week 8
 **Feature 1:**  Login page, User profile Implementation.  
+DONE!
 
 **Feature 2:** Frontend showcasing movie implementation.
 DONE!
 
 ### Week 9
 **Feature 1:** Frontend Movie CRUD implementation.
+DONE!
 
 **Feature 2:** Rating system implementation (both frontend and backend)
 DONE!
 
 ### Week 10
 **Feature 1:** Seperate the movies into Watchlist and Seen.
+DONE!
 
 **Feature 2:** Adding friends early implementation
 DONE!
 
 ### Week 11
 **Feature 1:** Complete friends implementation
+DONE!
 
 **Feature 2:** Seeing friends' ratings.
 DONE!
@@ -114,23 +120,21 @@ DONE!
 
 ### Week 13
 **Feature 1:** Adding comments to ratings
+DONE!
 
 **Feature 2:** Reusing movies, instead of creating new ones every time.
+DONE!
 
 ### Week 14
 *Easter vacation - nothing planned.*
+DONE!
 
 ### Week 15
-**Feature 1:** Tag system implementation
+**Feature 1:** Simple User Creation Implementation
 
-**Feature 2:** UI Overhaul
+**Feature 2:** Login Screen overhaul
 
 ### Week 16
-**Feature 1:** [...]
+**Feature 1:** IMDB Api implementation
 
-**Feature 2:** [...]
-
-### Week 17
-**Feature 1:** [...]
-
-**Feature 2:** [...]
+**Feature 2:** Gmail API for 2FA account creation
